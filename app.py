@@ -20,7 +20,7 @@ except ImportError:
 # 1. PAGE CONFIGURATION & USER-FRIENDLY DARK THEME CSS
 # ==============================================================================
 st.set_page_config(
-    page_title="AERO-KINETIX AI | Smart Sports Coach",
+    page_title="AERO-KINETIX AI | Smart Sports Coach & 3D Mannequin Lab",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -57,7 +57,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             border-right: 1px solid rgba(255, 255, 255, 0.08);
         }}
 
-        /* Style Sidebar Radio Buttons as a Modern Navigation Menu */
         div[role="radiogroup"] > label {{
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.07);
@@ -73,7 +72,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             border-color: rgba(16, 185, 129, 0.4);
         }}
 
-        /* Friendly Welcome Header */
         .welcome-banner {{
             background: linear-gradient(135deg, rgba(20, 29, 47, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -102,7 +100,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             margin-top: 4px;
         }}
 
-        /* Friendly Summary Cards */
         .friendly-card {{
             background: var(--bg-card);
             border: 1px solid rgba(255, 255, 255, 0.09);
@@ -132,7 +129,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             margin-top: 0.45rem;
         }}
 
-        /* Progress Bar inside Cards */
         .progress-track {{
             width: 100%;
             height: 8px;
@@ -142,7 +138,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             margin-top: 8px;
         }}
 
-        /* Pills / Badges */
         .pill {{
             display: inline-block;
             padding: 4px 12px;
@@ -175,7 +170,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             border: 1px solid rgba(6, 182, 212, 0.4);
         }}
 
-        /* AI Coach Message Bubble */
         .coach-box {{
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.09) 100%);
             border: 1px solid rgba(16, 185, 129, 0.4);
@@ -200,7 +194,6 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
             color: #F3F4F6;
         }}
 
-        /* Workout Step Card */
         .workout-step {{
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -221,197 +214,121 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
 
 
 # ==============================================================================
-# 2. MULTI-SPORT PRO ATHLETE DATABASE & 28-DAY HISTORY GENERATOR
+# 2. INTERNATIONAL & LEAGUE PRO ATHLETE DATABASE (80+ WORLD-CLASS PLAYERS)
 # ==============================================================================
+@st.cache_data
 def get_pro_athletes_db() -> pd.DataFrame:
-    """Returns multi-sport athlete profiles with traits and jersey colors."""
-    athletes = [
-        # BADMINTON
-        {
-            "Sport": "Badminton",
-            "Team_League": "BWF World Tour (Denmark)",
-            "Athlete": "Viktor Axelsen",
-            "Position": "Men's Singles Attacking Baseline",
-            "Pace": 91,
-            "Endurance": 94,
-            "Agility": 96,
-            "Power": 95,
-            "Tactical_IQ": 98,
-            "Recovery": 93,
-            "OVR": 95,
-            "Jersey_Color": "#EF4444",
-            "Signature_Style": "Steep jump smashes & wide court reach",
-        },
-        {
-            "Sport": "Badminton",
-            "Team_League": "BWF Legends (China)",
-            "Athlete": "Lin Dan",
-            "Position": "Men's Singles Counter-Attacking",
-            "Pace": 95,
-            "Endurance": 97,
-            "Agility": 99,
-            "Power": 93,
-            "Tactical_IQ": 99,
-            "Recovery": 95,
-            "OVR": 97,
-            "Jersey_Color": "#F59E0B",
-            "Signature_Style": "Explosive net lunges & sixth-sense anticipation",
-        },
-        {
-            "Sport": "Badminton",
-            "Team_League": "BWF World Tour (South Korea)",
-            "Athlete": "An Se-young",
-            "Position": "Women's Singles Defensive Specialist",
-            "Pace": 93,
-            "Endurance": 99,
-            "Agility": 97,
-            "Power": 88,
-            "Tactical_IQ": 96,
-            "Recovery": 98,
-            "OVR": 95,
-            "Jersey_Color": "#3B82F6",
-            "Signature_Style": "Relentless rally stamina & elastic split-steps",
-        },
-        # FOOTBALL
-        {
-            "Sport": "Football",
-            "Team_League": "La Liga (Real Madrid)",
-            "Athlete": "Kylian Mbappé",
-            "Position": "Forward / Striker",
-            "Pace": 99,
-            "Endurance": 89,
-            "Agility": 95,
-            "Power": 88,
-            "Tactical_IQ": 92,
-            "Recovery": 91,
-            "OVR": 94,
-            "Jersey_Color": "#06B6D4",
-            "Signature_Style": "Lightning counter-attack sprints & clinical finishing",
-        },
-        {
-            "Sport": "Football",
-            "Team_League": "Premier League (Manchester City)",
-            "Athlete": "Erling Haaland",
-            "Position": "Center Striker (No. 9)",
-            "Pace": 94,
-            "Endurance": 88,
-            "Agility": 85,
-            "Power": 99,
-            "Tactical_IQ": 94,
-            "Recovery": 93,
-            "OVR": 94,
-            "Jersey_Color": "#38BDF8",
-            "Signature_Style": "Explosive box power & aerial vertical leaps",
-        },
-        {
-            "Sport": "Football",
-            "Team_League": "La Liga (Real Madrid)",
-            "Athlete": "Jude Bellingham",
-            "Position": "Box-to-Box Midfielder",
-            "Pace": 88,
-            "Endurance": 97,
-            "Agility": 91,
-            "Power": 90,
-            "Tactical_IQ": 95,
-            "Recovery": 94,
-            "OVR": 93,
-            "Jersey_Color": "#A855F7",
-            "Signature_Style": "All-pitch stamina, pressing & late box runs",
-        },
-        # BASKETBALL
-        {
-            "Sport": "Basketball",
-            "Team_League": "NBA (Los Angeles Lakers)",
-            "Athlete": "LeBron James",
-            "Position": "Point Forward (SF/PF)",
-            "Pace": 91,
-            "Endurance": 95,
-            "Agility": 90,
-            "Power": 98,
-            "Tactical_IQ": 99,
-            "Recovery": 99,
-            "OVR": 96,
-            "Jersey_Color": "#FACC15",
-            "Signature_Style": "Power rim drives, elite playmaking & peak recovery",
-        },
-        {
-            "Sport": "Basketball",
-            "Team_League": "NBA (Golden State Warriors)",
-            "Athlete": "Stephen Curry",
-            "Position": "Point Guard (PG)",
-            "Pace": 92,
-            "Endurance": 99,
-            "Agility": 97,
-            "Power": 82,
-            "Tactical_IQ": 98,
-            "Recovery": 94,
-            "OVR": 95,
-            "Jersey_Color": "#2563EB",
-            "Signature_Style": "Constant off-ball movement & quick-release shooting",
-        },
-        {
-            "Sport": "Basketball",
-            "Team_League": "NBA (Denver Nuggets)",
-            "Athlete": "Nikola Jokić",
-            "Position": "Center (C)",
-            "Pace": 78,
-            "Endurance": 95,
-            "Agility": 86,
-            "Power": 96,
-            "Tactical_IQ": 99,
-            "Recovery": 95,
-            "OVR": 96,
-            "Jersey_Color": "#F97316",
-            "Signature_Style": "Full-court passing vision, post balance & touch",
-        },
-        # CRICKET
-        {
-            "Sport": "Cricket",
-            "Team_League": "ICC / PSL (Pakistan National Team)",
-            "Athlete": "Babar Azam",
-            "Position": "Top-Order Batter (No. 3)",
-            "Pace": 87,
-            "Endurance": 94,
-            "Agility": 93,
-            "Power": 88,
-            "Tactical_IQ": 96,
-            "Recovery": 92,
-            "OVR": 93,
-            "Jersey_Color": "#10B981",
-            "Signature_Style": "Smooth cover drives, head balance & crease footwork",
-        },
-        {
-            "Sport": "Cricket",
-            "Team_League": "ICC / IPL (India National Team)",
-            "Athlete": "Virat Kohli",
-            "Position": "Top-Order Batter (No. 3)",
-            "Pace": 94,
-            "Endurance": 98,
-            "Agility": 95,
-            "Power": 91,
-            "Tactical_IQ": 98,
-            "Recovery": 96,
-            "OVR": 96,
-            "Jersey_Color": "#0EA5E9",
-            "Signature_Style": "Fast running between wickets & high-pressure chases",
-        },
-        {
-            "Sport": "Cricket",
-            "Team_League": "ICC / PSL (Pakistan National Team)",
-            "Athlete": "Shaheen Shah Afridi",
-            "Position": "Left-Arm Fast Bowler",
-            "Pace": 96,
-            "Endurance": 91,
-            "Agility": 89,
-            "Power": 95,
-            "Tactical_IQ": 92,
-            "Recovery": 90,
-            "OVR": 93,
-            "Jersey_Color": "#14B8A6",
-            "Signature_Style": "145+ kph swinging yorkers & explosive bowling action",
-        },
+    """
+    Returns an extensive roster of 80+ international & league-level athletes across
+    Badminton, Football, Basketball, and Cricket.
+    Tuple schema:
+    (Sport, Team_League, Athlete, Position, Pace, Endurance, Agility, Power, Tactical_IQ, Recovery, OVR, Jersey_Color, Signature_Style)
+    """
+    raw_roster = [
+        # ---------------- BADMINTON (BWF INTERNATIONAL & NATIONAL TEAMS) ----------------
+        ("Badminton", "BWF World Tour (Denmark)", "Viktor Axelsen", "Men's Singles Attacking Baseline", 91, 94, 96, 95, 98, 93, 95, "#EF4444", "Steep overhead jump smashes & commanding court reach"),
+        ("Badminton", "BWF World Tour (Denmark)", "Anders Antonsen", "Men's Singles All-Court Tactician", 90, 93, 94, 91, 96, 92, 93, "#DC2626", "Deceptive net exchanges & counter-attacking variations"),
+        ("Badminton", "BWF Legends (China)", "Lin Dan", "Men's Singles Counter-Attacking", 95, 97, 99, 93, 99, 95, 97, "#F59E0B", "Explosive net lunges, wrist flicks & sixth-sense anticipation"),
+        ("Badminton", "BWF World Tour (China)", "Shi Yuqi", "Men's Singles Offensive Specialist", 93, 92, 95, 96, 95, 91, 94, "#EF4444", "Whip-like cross-court smashes & razor-sharp net kills"),
+        ("Badminton", "BWF World Tour (China)", "Chen Yufei", "Women's Singles Defensive Anchor", 92, 97, 96, 89, 97, 96, 95, "#F97316", "Unbreakable baseline retrieval & rally patience"),
+        ("Badminton", "BWF World Tour (China)", "Liang Weikeng", "Men's Doubles Rear-Court Power", 92, 90, 93, 99, 91, 90, 93, "#E11D48", "Thunderous back-court jump smashes & rotational speed"),
+        ("Badminton", "BWF World Tour (South Korea)", "An Se-young", "Women's Singles Defensive Specialist", 94, 99, 98, 89, 97, 98, 96, "#3B82F6", "Relentless rally stamina, elastic split-steps & court coverage"),
+        ("Badminton", "BWF World Tour (South Korea)", "Seo Seung-jae", "Men's/Mixed Doubles All-Rounder", 94, 96, 96, 93, 97, 95, 95, "#2563EB", "Left-handed angles, flat drive supremacy & multi-event stamina"),
+        ("Badminton", "BWF Legends (Malaysia)", "Lee Chong Wei", "Men's Singles Speed & Counter", 99, 96, 99, 92, 96, 95, 96, "#FACC15", "Supersonic defensive recovery & mid-court jump smashes"),
+        ("Badminton", "BWF World Tour (Malaysia)", "Lee Zii Jia", "Men's Singles Power Attacker", 93, 90, 94, 98, 90, 91, 93, "#EAB308", "Backhand whip smashes & explosive baseline power"),
+        ("Badminton", "BWF World Tour (Malaysia)", "Aaron Chia", "Men's Doubles Front/Mid-Court", 93, 92, 96, 90, 95, 92, 93, "#F59E0B", "Flat-exchange reflexes & defensive block placement"),
+        ("Badminton", "BWF World Tour (India)", "Lakshya Sen", "Men's Singles High-Pace Retriever", 95, 95, 96, 90, 92, 94, 93, "#0EA5E9", "Diving defensive saves & rapid net-to-baseline transitions"),
+        ("Badminton", "BWF World Tour (India)", "PV Sindhu", "Women's Singles Attacking Tall", 90, 92, 91, 95, 93, 92, 92, "#38BDF8", "High-point steep cross smashes & big-tournament mentality"),
+        ("Badminton", "BWF World Tour (India)", "Satwiksairaj Rankireddy", "Men's Doubles Power Smasher", 91, 91, 92, 99, 92, 91, 93, "#0284C7", "World-record 565 kph smash velocity & rear-court dominance"),
+        ("Badminton", "BWF World Tour (India)", "Chirag Shetty", "Men's Doubles Net Interceptor", 95, 93, 97, 90, 95, 93, 94, "#06B6D4", "Lightning front-court interceptions & aggressive net pressure"),
+        ("Badminton", "BWF World Tour (Indonesia)", "Anthony Sinisuka Ginting", "Men's Singles Explosive Pace", 97, 90, 98, 93, 91, 90, 93, "#EF4444", "Deceptive net slices & ultra-fast attacking footwork"),
+        ("Badminton", "BWF World Tour (Indonesia)", "Jonatan Christie", "Men's Singles Rally & Counter", 93, 95, 94, 92, 94, 94, 94, "#DC2626", "Physical baseline attrition & clinical straight smashes"),
+        ("Badminton", "BWF World Tour (Japan)", "Kodai Naraoka", "Men's Singles Marathon Defender", 92, 99, 97, 86, 95, 98, 94, "#EC4899", "90-minute match endurance & low-error defensive walls"),
+        ("Badminton", "BWF World Tour (Japan)", "Akane Yamaguchi", "Women's Singles Explosive Retriever", 95, 97, 98, 91, 95, 96, 95, "#DB2777", "Compact footwork, deceptive clears & springy jump transitions"),
+        ("Badminton", "BWF World Tour (Chinese Taipei)", "Tai Tzu-ying", "Women's Singles Deception Artist", 93, 91, 98, 90, 99, 92, 95, "#8B5CF6", "Disguised drop shots, late wrist holds & court geometry"),
+        ("Badminton", "BWF World Tour (Thailand)", "Kunlavut Vitidsarn", "Men's Singles World Champion Tactician", 93, 96, 96, 91, 97, 95, 95, "#14B8A6", "Counter-punching accuracy & elite defensive absorption"),
+
+        # ---------------- FOOTBALL (UEFA CHAMPIONS LEAGUE & INTERNATIONAL) ----------------
+        ("Football", "La Liga (Real Madrid / France)", "Kylian Mbappé", "Inside Forward / Striker", 99, 89, 95, 88, 92, 91, 94, "#06B6D4", "Supersonic transition sprints & clinical half-space finishing"),
+        ("Football", "La Liga (Real Madrid / England)", "Jude Bellingham", "Box-to-Box Attacking Midfielder", 88, 97, 91, 90, 95, 94, 93, "#A855F7", "All-pitch stamina, high-volume pressing & late box arrivals"),
+        ("Football", "La Liga (Real Madrid / Brazil)", "Vinícius Júnior", "Left Winger", 98, 91, 98, 82, 90, 92, 93, "#FACC15", "Relentless 1v1 touchline dribbling & explosive acceleration"),
+        ("Football", "La Liga (Real Madrid / Uruguay)", "Federico Valverde", "Box-to-Box Engine Midfielder", 94, 99, 89, 93, 93, 97, 94, "#38BDF8", "Lung-bursting recovery runs & 30-yard thunderbolt strikes"),
+        ("Football", "La Liga (FC Barcelona / Spain)", "Lamine Yamal", "Right Wing Playmaker", 93, 88, 97, 78, 95, 90, 91, "#EF4444", "Tight-space ball mastery, outside-boot crosses & curling finishes"),
+        ("Football", "La Liga (FC Barcelona / Spain)", "Pedri", "Central Tempo Controller", 84, 93, 95, 76, 98, 89, 91, "#2563EB", "360-degree press resistance & defence-splitting through balls"),
+        ("Football", "La Liga (FC Barcelona / Poland)", "Robert Lewandowski", "Complete No. 9 Striker", 83, 88, 86, 94, 97, 93, 92, "#DC2626", "Penalty-box positioning, first-time volleys & hold-up play"),
+        ("Football", "Premier League (Man City / Norway)", "Erling Haaland", "Target No. 9 Striker", 94, 88, 85, 99, 94, 93, 94, "#38BDF8", "Explosive box power, aerial vertical leaps & physical shielding"),
+        ("Football", "Premier League (Man City / Spain)", "Rodri", "Defensive Midfield Anchor", 81, 97, 86, 92, 99, 95, 95, "#0EA5E9", "Metronomic passing tempo, tactical interceptions & edge-of-box goals"),
+        ("Football", "Premier League (Man City / Belgium)", "Kevin De Bruyne", "Attacking Midfield Architect", 83, 89, 87, 91, 99, 88, 93, "#06B6D4", "Whipped early crosses, visionary passing lanes & two-footed strikes"),
+        ("Football", "Premier League (Arsenal / England)", "Bukayo Saka", "Right Inverted Winger", 91, 95, 94, 87, 93, 95, 92, "#EF4444", "Low-center-of-gravity shielding, cut-inside curls & durability"),
+        ("Football", "Premier League (Arsenal / Norway)", "Martin Ødegaard", "Right-Half-Space Playmaker", 84, 96, 93, 80, 97, 93, 92, "#E11D48", "High-intensity pressing trigger & disguised reverse passes"),
+        ("Football", "Premier League (Arsenal / England)", "Declan Rice", "Ball-Winning Midfielder", 87, 98, 86, 93, 94, 96, 92, "#DC2626", "Long-stride ball carrying & recovery tackle timing"),
+        ("Football", "Premier League (Liverpool / Egypt)", "Mohamed Salah", "Inside Right Forward", 93, 93, 94, 89, 95, 96, 94, "#EF4444", "explosive inside channels, core strength & curlers to the far post"),
+        ("Football", "Premier League (Liverpool / Netherlands)", "Virgil van Dijk", "Commanding Center-Back", 88, 90, 82, 97, 96, 93, 93, "#F97316", "Aerial dominance, 60-yard diagonal switches & 1v1 composure"),
+        ("Football", "Bundesliga (Bayern Munich / England)", "Harry Kane", "Deep-Lying Complete Striker", 80, 91, 83, 94, 98, 92, 93, "#DC2626", "Playmaking No. 9 drops, lethal penalty-box finishing & long passing"),
+        ("Football", "Bundesliga (Bayern Munich / Germany)", "Jamal Musiala", "Slalom Attacking Midfielder", 91, 90, 99, 79, 93, 90, 92, "#E11D48", "Elastic ankle agility through crowded midfield blocks"),
+        ("Football", "Bundesliga (Leverkusen / Germany)", "Florian Wirtz", "Creative No. 10", 89, 94, 95, 81, 96, 92, 92, "#EF4444", "One-touch combination play & half-space incisiveness"),
+        ("Football", "Serie A (Inter Milan / Argentina)", "Lautaro Martínez", "Pressing Striker", 88, 93, 91, 90, 93, 92, 91, "#2563EB", "Aggressive front-foot pressing & near-post darting finishes"),
+        ("Football", "MLS (Inter Miami / Argentina)", "Lionel Messi", "Free-Role Playmaker / False 9", 85, 84, 97, 83, 99, 89, 94, "#EC4899", "Unmatched spatial scanning, low-gravity slaloms & pinpoint free kicks"),
+        ("Football", "Saudi Pro League (Al-Nassr / Portugal)", "Cristiano Ronaldo", "Penalty-Box Poacher", 87, 92, 87, 95, 96, 97, 92, "#FACC15", "2.9m vertical header hangs, two-footed power & elite conditioning"),
+
+        # ---------------- BASKETBALL (NBA & FIBA INTERNATIONAL) ----------------
+        ("Basketball", "NBA (Los Angeles Lakers / USA)", "LeBron James", "Point Forward (SF/PF)", 91, 95, 90, 98, 99, 99, 96, "#FACC15", "Downhill freight-train rim drives, full-court IQ & peak longevity"),
+        ("Basketball", "NBA (Los Angeles Lakers / USA)", "Anthony Davis", "Two-Way Center / PF", 85, 90, 88, 95, 94, 89, 93, "#EAB308", " Paint-protecting shot blocks, lob finishing & mid-range face-ups"),
+        ("Basketball", "NBA (Golden State Warriors / USA)", "Stephen Curry", "Combo Guard (PG)", 92, 99, 97, 82, 98, 94, 95, "#2563EB", "Constant off-ball marathon movement & sub-0.4s 30-foot release"),
+        ("Basketball", "NBA (Denver Nuggets / Serbia)", "Nikola Jokić", "Point Center (C)", 78, 96, 86, 96, 99, 96, 97, "#F97316", "Full-court outlet vision, Sombor shuffle touch & rebound control"),
+        ("Basketball", "NBA (Dallas Mavericks / Slovenia)", "Luka Dončić", "Heliocentric Point Guard", 84, 92, 92, 93, 99, 91, 96, "#0EA5E9", "Step-back 3PT separation, deceleration pace & skip-pass mastery"),
+        ("Basketball", "NBA (Milwaukee Bucks / Greece)", "Giannis Antetokounmpo", "Slashing Power Forward", 96, 96, 93, 99, 92, 96, 96, "#10B981", "3-dribble coast-to-coast Euro-steps & weak-side rim protection"),
+        ("Basketball", "NBA (Boston Celtics / USA)", "Jayson Tatum", "Two-Way Wing (SF/PF)", 89, 95, 91, 91, 94, 95, 94, "#22C55E", "Sidestep 3PT creation, switchable wing defense & durability"),
+        ("Basketball", "NBA (Boston Celtics / USA)", "Jaylen Brown", "Slasher Two-Guard (SG/SF)", 94, 93, 93, 92, 89, 93, 92, "#16A34A", "Explosive transition dunks, mid-post footwork & on-ball pressure"),
+        ("Basketball", "NBA (OKC Thunder / Canada)", "Shai Gilgeous-Alexander", "Slashing Lead Guard (PG)", 93, 95, 98, 86, 96, 94, 96, "#38BDF8", "Unstoppable start-stop deceleration drives & mid-range efficiency"),
+        ("Basketball", "NBA (San Antonio Spurs / France)", "Victor Wembanyama", "Unicorn Rim Protector (C/PF)", 88, 90, 91, 89, 93, 91, 94, "#9CA3AF", "8-foot wingspan shot-blocking, step-back 3s & fluid ball handling"),
+        ("Basketball", "NBA (Minnesota Timberwolves / USA)", "Anthony Edwards", "Explosive Scoring Guard (SG)", 97, 94, 96, 95, 90, 94, 94, "#3B82F6", "Hang-time poster dunks, point-of-attack defense & pull-up shooting"),
+        ("Basketball", "NBA (Phoenix Suns / USA)", "Kevin Durant", "7-Foot Perimeter Scorer (PF/SF)", 87, 92, 91, 87, 97, 91, 94, "#F59E0B", "Unblockable high-release mid-range jumpers & effortless 3-level scoring"),
+        ("Basketball", "NBA (Phoenix Suns / USA)", "Devin Booker", "Three-Level Scoring Guard (SG)", 89, 93, 92, 86, 94, 92, 92, "#F97316", "Pin-down curl footwork, mid-range pull-ups & playmaking"),
+        ("Basketball", "NBA (Philadelphia 76ers / USA)", "Joel Embiid", "Dominant Scoring Center (C)", 80, 87, 85, 99, 94, 86, 94, "#2563EB", "Foul-drawing post footwork, nail jumper touch & rim deterrence"),
+        ("Basketball", "NBA (New York Knicks / USA)", "Jalen Brunson", "Crafty Lead Guard (PG)", 88, 95, 95, 87, 96, 93, 93, "#F97316", "Pivot-foot paint mastery, clutch shot-making & low turnovers"),
+        ("Basketball", "NBA (Sacramento Kings / USA)", "De'Aaron Fox", "Speed Point Guard (PG)", 99, 93, 97, 84, 91, 92, 91, "#A855F7", "End-to-end blur speed, clutch 4th-quarter floaters & steals"),
+
+        # ---------------- CRICKET (ICC INTERNATIONAL & T20 LEAGUES: PSL / IPL / BBL) ----------------
+        ("Cricket", "ICC / PSL (Pakistan / Peshawar Zalmi)", "Babar Azam", "Top-Order Batter (No. 3)", 87, 94, 93, 88, 96, 92, 93, "#10B981", "High-elbow biomechanics, late-contact cover drives & crease balance"),
+        ("Cricket", "ICC / PSL (Pakistan / Lahore Qalandars)", "Shaheen Shah Afridi", "Left-Arm Fast Bowler", 96, 91, 89, 95, 92, 90, 93, "#14B8A6", "145+ kph late-inswinging yorkers & high-release front-leg brace"),
+        ("Cricket", "ICC / PSL (Pakistan / Multan Sultans)", "Mohammad Rizwan", "Wicketkeeper Batter", 92, 98, 96, 87, 95, 96, 93, "#22C55E", "Tireless crouched glovework, leg-side sweeps & busy running"),
+        ("Cricket", "ICC / PSL (Pakistan / Islamabad United)", "Naseem Shah", "Right-Arm Express Pace", 95, 90, 90, 92, 91, 89, 91, "#EF4444", "High-arm seam presentation, late outswing & fiery spells"),
+        ("Cricket", "ICC / PSL (Pakistan / Peshawar Zalmi)", "Saim Ayub", "Aggressive Opening Batter", 90, 88, 94, 90, 89, 90, 89, "#FACC15", "No-look pick-up flicks, carrom-ball spin & powerplay intent"),
+        ("Cricket", "ICC / PSL (Pakistan / Lahore Qalandars)", "Fakhar Zaman", "Explosive Left-Hand Opener", 89, 91, 88, 96, 89, 90, 90, "#10B981", "Clean slog-sweeps over cow corner & big-match century temperament"),
+        ("Cricket", "ICC / IPL (India / RCB)", "Virat Kohli", "Top-Order Chase Master (No. 3)", 94, 98, 95, 91, 98, 96, 96, "#0EA5E9", "Explosive 2-run conversion sprints, wrists-driven flicks & mental grit"),
+        ("Cricket", "ICC / IPL (India / Mumbai Indians)", "Jasprit Bumrah", "All-Phase Spearhead Fast Bowler", 95, 94, 93, 95, 99, 94, 96, "#2563EB", "Hyper-extension sling release, unplayable yorkers & deceptive slower balls"),
+        ("Cricket", "ICC / IPL (India / Mumbai Indians)", "Rohit Sharma", "Opening Batter & Captain", 84, 90, 88, 97, 97, 90, 93, "#3B82F6", "Effortless front-foot pull shots & powerplay field manipulation"),
+        ("Cricket", "ICC / IPL (India / Mumbai Indians)", "Suryakumar Yadav", "360-Degree T20 Batter", 91, 92, 97, 93, 96, 92, 94, "#06B6D4", "Fine-leg ramps, wrists-generated supla shots & extreme strike rates"),
+        ("Cricket", "ICC / IPL (India / CSK)", "Ravindra Jadeja", "Three-Dimensional All-Rounder", 95, 96, 98, 90, 94, 96, 94, "#FACC15", "Bullet-arm direct hits, rapid left-arm orthodox overs & lower-order power"),
+        ("Cricket", "ICC / BBL (Australia / Sunrisers)", "Pat Cummins", "Fast-Bowling Captain", 92, 96, 90, 94, 98, 95, 95, "#F59E0B", "Relentless top-of-off-stump seam accuracy & lower-order clutch hitting"),
+        ("Cricket", "ICC / IPL (Australia / Sunrisers)", "Travis Head", " Ultra-Attacking Opener", 89, 91, 92, 97, 92, 91, 93, "#EAB308", "Fearless square-of-the-wicket slashing & finals match-winning hundreds"),
+        ("Cricket", "ICC (Australia)", "Steve Smith", "Unorthodox Middle-Order Genius", 86, 97, 94, 86, 99, 95, 94, "#FACC15", "Back-and-across trigger shuffle, hand-eye wizardry & 8-hour concentration"),
+        ("Cricket", "ICC / IPL (Australia / KKR)", "Mitchell Starc", "Left-Arm Express Swing", 96, 90, 88, 97, 91, 90, 93, "#10B981", "150 kph toe-crushing inswinging yorkers with the new ball"),
+        ("Cricket", "ICC (England)", "Joe Root", "Classical Test & ODI Anchor", 87, 96, 93, 85, 98, 95, 94, "#EF4444", "Late dabs to third man, reverse-scoops & golden-arm off-spin"),
+        ("Cricket", "ICC (England)", "Ben Stokes", "Match-Winning All-Rounder", 88, 95, 90, 97, 97, 92, 94, "#DC2626", "Miracle run-chases, bouncer-barrage spells & slip-cordon acrobatics"),
+        ("Cricket", "ICC / IPL (England / Rajasthan)", "Jos Buttler", "Explosive White-Ball Opener", 91, 92, 94, 96, 95, 92, 94, "#EC4899", "Deep-crease bat speed, ramp shots & death-overs carnage"),
+        ("Cricket", "ICC (New Zealand)", "Kane Williamson", "Technical No. 3 Batter", 86, 95, 92, 84, 99, 94, 93, "#14B8A6", "Under-the-eyes late steers, calm leadership & soft-hands placement"),
+        ("Cricket", "ICC / IPL (Afghanistan / GT)", "Rashid Khan", "T20 Leg-Spin Superstar", 92, 94, 96, 91, 97, 95, 95, "#0EA5E9", "100 kph quick-arm googlies, economy-rate strangle & snake-shot sixes"),
+        ("Cricket", "ICC / IPL (South Africa / SRH)", "Heinrich Klaasen", "Middle-Overs Spin Destroyer", 88, 91, 91, 98, 93, 91, 93, "#22C55E", "Back-foot pull-shot power against spin & 180+ strike-rate acceleration"),
     ]
-    return pd.DataFrame(athletes)
+
+    columns = [
+        "Sport",
+        "Team_League",
+        "Athlete",
+        "Position",
+        "Pace",
+        "Endurance",
+        "Agility",
+        "Power",
+        "Tactical_IQ",
+        "Recovery",
+        "OVR",
+        "Jersey_Color",
+        "Signature_Style",
+    ]
+    return pd.DataFrame(raw_roster, columns=columns)
 
 
 def generate_28_day_seed_log() -> pd.DataFrame:
@@ -913,231 +830,343 @@ def query_ai_coach(
 
 
 # ==============================================================================
-# 5. INTERACTIVE 3D MOUSE-ROTATABLE AVATAR (PLOTLY WEBGL)
+# 5. VOLUMETRIC 3D HUMAN MANNEQUIN ENGINE (SMOOTH SHADED SURFACES)
 # ==============================================================================
+def _create_mannequin_limb_surface(
+    p0: Tuple[float, float, float],
+    p1: Tuple[float, float, float],
+    r0: Tuple[float, float],
+    r1: Tuple[float, float],
+    color_hex: str,
+    label: str,
+    bulge: float = 0.14,
+    n_theta: int = 20,
+    n_z: int = 10,
+    opacity: float = 0.96,
+) -> go.Surface:
+    """
+    Generates a smooth 3D sculpted anatomical limb or torso segment between 3D points p0 and p1
+    with elliptical cross-sections (rx, ry) and a natural mid-segment muscle belly bulge.
+    """
+    p0_arr = np.array(p0, dtype=float)
+    p1_arr = np.array(p1, dtype=float)
+    v = p1_arr - p0_arr
+    length = float(np.linalg.norm(v))
+    if length < 1e-6:
+        v_hat = np.array([0.0, 0.0, 1.0])
+    else:
+        v_hat = v / length
+
+    # Construct orthonormal local coordinate frame (e1: lateral, e2: anterior-posterior)
+    ref = np.array([0.0, 1.0, 0.0]) if abs(v_hat[1]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(v_hat, ref)
+    e1 /= np.linalg.norm(e1)
+    e2 = np.cross(v_hat, e1)
+    e2 /= np.linalg.norm(e2)
+
+    theta = np.linspace(0.0, 2.0 * np.pi, n_theta)
+    t = np.linspace(0.0, 1.0, n_z)
+    theta_grid, t_grid = np.meshgrid(theta, t)
+
+    # Muscle belly contour curve using sine arch
+    contour = 1.0 + bulge * np.sin(np.pi * t_grid)
+    rx = ((1.0 - t_grid) * r0[0] + t_grid * r1[0]) * contour
+    ry = ((1.0 - t_grid) * r0[1] + t_grid * r1[1]) * contour
+
+    center_x = p0_arr[0] + t_grid * v[0]
+    center_y = p0_arr[1] + t_grid * v[1]
+    center_z = p0_arr[2] + t_grid * v[2]
+
+    x_surf = center_x + rx * np.cos(theta_grid) * e1[0] + ry * np.sin(theta_grid) * e2[0]
+    y_surf = center_y + rx * np.cos(theta_grid) * e1[1] + ry * np.sin(theta_grid) * e2[1]
+    z_surf = center_z + rx * np.cos(theta_grid) * e1[2] + ry * np.sin(theta_grid) * e2[2]
+
+    return go.Surface(
+        x=x_surf,
+        y=y_surf,
+        z=z_surf,
+        surfacecolor=np.zeros_like(z_surf),
+        colorscale=[[0, color_hex], [1, color_hex]],
+        showscale=False,
+        opacity=opacity,
+        name=label,
+        hovertemplate=f"<b>{label}</b><extra></extra>",
+        lighting=dict(ambient=0.58, diffuse=0.78, specular=0.45, roughness=0.32, fresnel=0.25),
+        lightposition=dict(x=120, y=220, z=280),
+    )
+
+
+def _create_mannequin_ellipsoid(
+    center: Tuple[float, float, float],
+    radii: Tuple[float, float, float],
+    color_hex: str,
+    label: str,
+    n_theta: int = 20,
+    n_phi: int = 14,
+    opacity: float = 0.98,
+) -> go.Surface:
+    """Generates a smooth 3D ellipsoid for the head, shoulder deltoids, knees, elbows, and hands."""
+    cx, cy, cz = center
+    rx, ry, rz = radii
+    theta = np.linspace(0.0, 2.0 * np.pi, n_theta)
+    phi = np.linspace(0.0, np.pi, n_phi)
+    theta_grid, phi_grid = np.meshgrid(theta, phi)
+
+    x_surf = cx + rx * np.sin(phi_grid) * np.cos(theta_grid)
+    y_surf = cy + ry * np.sin(phi_grid) * np.sin(theta_grid)
+    z_surf = cz + rz * np.cos(phi_grid)
+
+    return go.Surface(
+        x=x_surf,
+        y=y_surf,
+        z=z_surf,
+        surfacecolor=np.zeros_like(z_surf),
+        colorscale=[[0, color_hex], [1, color_hex]],
+        showscale=False,
+        opacity=opacity,
+        name=label,
+        hovertemplate=f"<b>{label}</b><extra></extra>",
+        lighting=dict(ambient=0.58, diffuse=0.78, specular=0.45, roughness=0.32, fresnel=0.25),
+        lightposition=dict(x=120, y=220, z=280),
+    )
+
+
 def build_3d_biomechanical_avatar(
     athlete_row: pd.Series,
     muscle_focus: str,
     soreness_level: int,
     readiness_index: float,
 ) -> go.Figure:
-    """Renders a 360-degree rotatable 3D athlete avatar synced to jersey colors and sore muscles."""
-    theme_hex = str(athlete_row["Jersey_Color"])
-    strain_hex = "#EF4444" if soreness_level >= 7 else ("#F59E0B" if soreness_level >= 4 else "#22D3EE")
+    """
+    Constructs a full 3D Volumetric Human Mannequin with smooth anatomical body surfaces,
+    athlete jersey colors, and dynamic muscle soreness heatmap highlighting.
+    """
+    jersey_hex = str(athlete_row["Jersey_Color"])
+    mannequin_skin = "#CBD5E1"   # Sculpted metallic mannequin finish
+    shorts_hex = "#1E293B"       # Athletic shorts slate
+    shoe_hex = "#06B6D4"         # Cyan performance footwear
 
-    joints: Dict[str, Tuple[float, float, float]] = {
-        "Head_Top": (0.0, 0.0, 184.0),
-        "Head_Center": (0.0, 2.0, 174.0),
-        "Neck_C7": (0.0, 0.0, 158.0),
-        "Sternum": (0.0, 6.0, 142.0),
-        "Thoracic_T8": (0.0, -3.0, 132.0),
-        "Lumbar_L3": (0.0, -1.0, 112.0),
-        "Pelvis_Center": (0.0, 0.0, 98.0),
-        "L_Shoulder": (-23.0, 0.0, 153.0),
-        "L_Elbow": (-33.0, 10.0, 126.0),
-        "L_Wrist": (-26.0, 24.0, 108.0),
-        "L_Hand": (-23.0, 29.0, 104.0),
-        "R_Shoulder": (23.0, 0.0, 153.0),
-        "R_Elbow": (35.0, 14.0, 134.0),
-        "R_Wrist": (30.0, 28.0, 148.0),
-        "R_Hand": (27.0, 32.0, 155.0),
-        "L_Hip": (-13.0, 0.0, 96.0),
-        "L_Knee": (-18.0, 10.0, 54.0),
-        "L_Ankle": (-20.0, -2.0, 12.0),
-        "L_Heel": (-20.0, -6.0, 3.0),
-        "L_Toe": (-22.0, 11.0, 3.0),
-        "R_Hip": (13.0, 0.0, 96.0),
-        "R_Knee": (18.0, 12.0, 54.0),
-        "R_Ankle": (20.0, 2.0, 12.0),
-        "R_Heel": (20.0, -3.0, 3.0),
-        "R_Toe": (22.0, 15.0, 3.0),
-        "L_Rib": (-16.0, 5.0, 126.0),
-        "R_Rib": (16.0, 5.0, 126.0),
-    }
+    # Determine soreness highlight color
+    if soreness_level >= 7:
+        sore_hex = "#EF4444"     # High soreness crimson
+    elif soreness_level >= 4:
+        sore_hex = "#F59E0B"     # Moderate soreness amber
+    else:
+        sore_hex = None
 
-    segments = [
-        ("Head_Top", "Head_Center", "Core"),
-        ("Head_Center", "Neck_C7", "Core"),
-        ("Neck_C7", "Sternum", "Lower Back / Core"),
-        ("Neck_C7", "Thoracic_T8", "Lower Back / Core"),
-        ("Thoracic_T8", "Lumbar_L3", "Lower Back / Core"),
-        ("Lumbar_L3", "Pelvis_Center", "Lower Back / Core"),
-        ("Sternum", "L_Rib", "Lower Back / Core"),
-        ("Sternum", "R_Rib", "Lower Back / Core"),
-        ("L_Rib", "Lumbar_L3", "Lower Back / Core"),
-        ("R_Rib", "Lumbar_L3", "Lower Back / Core"),
-        ("Neck_C7", "L_Shoulder", "Shoulders / Rotator Cuff"),
-        ("Neck_C7", "R_Shoulder", "Shoulders / Rotator Cuff"),
-        ("Sternum", "L_Shoulder", "Shoulders / Rotator Cuff"),
-        ("Sternum", "R_Shoulder", "Shoulders / Rotator Cuff"),
-        ("L_Rib", "L_Shoulder", "Shoulders / Rotator Cuff"),
-        ("R_Rib", "R_Shoulder", "Shoulders / Rotator Cuff"),
-        ("L_Shoulder", "L_Elbow", "Shoulders / Rotator Cuff"),
-        ("R_Shoulder", "R_Elbow", "Shoulders / Rotator Cuff"),
-        ("L_Elbow", "L_Wrist", "Arms"),
-        ("L_Wrist", "L_Hand", "Arms"),
-        ("R_Elbow", "R_Wrist", "Arms"),
-        ("R_Wrist", "R_Hand", "Arms"),
-        ("Pelvis_Center", "L_Hip", "Lower Back / Core"),
-        ("Pelvis_Center", "R_Hip", "Lower Back / Core"),
-        ("L_Hip", "R_Hip", "Lower Back / Core"),
-        ("L_Rib", "L_Hip", "Lower Back / Core"),
-        ("R_Rib", "R_Hip", "Lower Back / Core"),
-        ("L_Hip", "L_Knee", "Quads / Hamstrings"),
-        ("R_Hip", "R_Knee", "Quads / Hamstrings"),
-        ("L_Knee", "L_Ankle", "Calves / Achilles"),
-        ("R_Knee", "R_Ankle", "Calves / Achilles"),
-        ("L_Ankle", "L_Heel", "Calves / Achilles"),
-        ("R_Ankle", "R_Heel", "Calves / Achilles"),
-        ("L_Ankle", "L_Toe", "Calves / Achilles"),
-        ("R_Ankle", "R_Toe", "Calves / Achilles"),
-        ("L_Heel", "L_Toe", "Calves / Achilles"),
-        ("R_Heel", "R_Toe", "Calves / Achilles"),
-    ]
+    def pick_color(region_tag: str, default_hex: str) -> str:
+        if sore_hex is None:
+            return default_hex
+        if muscle_focus == "Full Body Systemic":
+            return sore_hex
+        if muscle_focus == region_tag:
+            return sore_hex
+        return default_hex
 
     fig = go.Figure()
 
-    torso_keys = ["Neck_C7", "L_Shoulder", "R_Shoulder", "Sternum", "Thoracic_T8", "L_Rib", "R_Rib", "Lumbar_L3", "L_Hip", "R_Hip", "Pelvis_Center"]
-    tx = [joints[k][0] for k in torso_keys]
-    ty = [joints[k][1] for k in torso_keys]
-    tz = [joints[k][2] for k in torso_keys]
-
+    # 1. HEAD, CRANIUM & NECK
     fig.add_trace(
-        go.Mesh3d(
-            x=tx,
-            y=ty,
-            z=tz,
-            alphahull=0,
-            opacity=0.22,
-            color=theme_hex,
-            name="Core Body Volume",
-            hoverinfo="skip",
+        _create_mannequin_ellipsoid(
+            center=(0.0, 1.0, 173.5),
+            radii=(8.8, 10.2, 12.2),
+            color_hex=mannequin_skin,
+            label=f"{athlete_row['Athlete']} — Cranium & Head (Readiness: {readiness_index}%)",
+        )
+    )
+    # Athletic Visor / Eye Shield Strip on Face
+    fig.add_trace(
+        _create_mannequin_ellipsoid(
+            center=(0.0, 9.6, 175.0),
+            radii=(7.2, 2.2, 2.4),
+            color_hex=jersey_hex,
+            label=f"{athlete_row['Athlete']} — Pro Visor",
+        )
+    )
+    # Muscular Neck
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(0.0, 0.0, 154.0),
+            p1=(0.0, 0.5, 163.5),
+            r0=(6.2, 5.8),
+            r1=(5.4, 5.2),
+            color_hex=mannequin_skin,
+            label="Cervical Neck",
+            bulge=0.05,
         )
     )
 
-    norm_x, norm_y, norm_z = [], [], []
-    sore_x, sore_y, sore_z = [], [], []
+    # 2. UPPER TORSO (V-TAPER CHEST / JERSEY), ABDOMEN & PELVIS
+    chest_color = pick_color("Lower Back / Core", jersey_hex)
+    abdomen_color = pick_color("Lower Back / Core", jersey_hex)
+    pelvis_color = pick_color("Lower Back / Core", shorts_hex)
 
-    for j1, j2, region in segments:
-        x1, y1, z1 = joints[j1]
-        x2, y2, z2 = joints[j2]
-        is_sore_region = (
-            muscle_focus == "Full Body Systemic"
-            or region == muscle_focus
-            or (muscle_focus == "Knees / Patella" and ("Knee" in j1 or "Knee" in j2))
-        )
-        if is_sore_region and soreness_level >= 4:
-            sore_x.extend([x1, x2, None])
-            sore_y.extend([y1, y2, None])
-            sore_z.extend([z1, z2, None])
-        else:
-            norm_x.extend([x1, x2, None])
-            norm_y.extend([y1, y2, None])
-            norm_z.extend([z1, z2, None])
-
+    # Upper Chest & Lats (V-Taper)
     fig.add_trace(
-        go.Scatter3d(
-            x=norm_x,
-            y=norm_y,
-            z=norm_z,
-            mode="lines",
-            line=dict(color=theme_hex, width=7),
-            name=f"{athlete_row['Athlete']} Stance",
-            hoverinfo="skip",
+        _create_mannequin_limb_surface(
+            p0=(0.0, 0.0, 126.0),
+            p1=(0.0, 0.5, 154.0),
+            r0=(14.8, 9.6),
+            r1=(20.5, 11.8),
+            color_hex=chest_color,
+            label=f"Upper Torso / Jersey ({athlete_row['Team_League']})",
+            bulge=0.10,
+        )
+    )
+    # Waist / Core / Obliques
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(0.0, 0.0, 104.0),
+            p1=(0.0, 0.0, 126.5),
+            r0=(14.5, 9.5),
+            r1=(14.8, 9.6),
+            color_hex=abdomen_color,
+            label=f"Abdominal Core & Lumbar (Focus: {muscle_focus})",
+            bulge=0.06,
+        )
+    )
+    # Pelvis / Hips (Athletic Shorts Base)
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(0.0, 0.0, 91.0),
+            p1=(0.0, 0.0, 105.0),
+            r0=(15.2, 10.2),
+            r1=(15.0, 10.0),
+            color_hex=pelvis_color,
+            label="Pelvic Girdle & Glutes",
+            bulge=0.08,
         )
     )
 
-    if sore_x:
+    # 3. SHOULDERS, ARMS, ELBOWS, FOREARMS & HANDS (ATHLETIC READY POSE)
+    shoulder_color = pick_color("Shoulders / Rotator Cuff", jersey_hex)
+    upper_arm_color = pick_color("Shoulders / Rotator Cuff", mannequin_skin)
+
+    # Left Shoulder Deltoid Cap, Upper Arm, Elbow, Forearm, Hand
+    fig.add_trace(_create_mannequin_ellipsoid((-22.5, 0.0, 150.0), (6.8, 6.2, 6.5), shoulder_color, "Left Deltoid / Shoulder"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(-22.5, 0.0, 150.0),
+            p1=(-30.0, 6.0, 122.0),
+            r0=(5.3, 5.0),
+            r1=(4.3, 4.1),
+            color_hex=upper_arm_color,
+            label="Left Bicep / Tricep",
+            bulge=0.18,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((-30.0, 6.0, 122.0), (4.2, 4.2, 4.2), mannequin_skin, "Left Elbow Joint"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(-30.0, 6.0, 122.0),
+            p1=(-25.0, 22.0, 104.0),
+            r0=(4.2, 4.0),
+            r1=(3.1, 2.9),
+            color_hex=mannequin_skin,
+            label="Left Forearm",
+            bulge=0.15,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((-24.0, 25.0, 101.0), (3.5, 4.2, 3.2), jersey_hex, "Left Hand / Wristband"))
+
+    # Right Shoulder Deltoid Cap, Upper Arm, Elbow, Forearm, Hand (Slightly Elevated Action Stance)
+    fig.add_trace(_create_mannequin_ellipsoid((22.5, 0.0, 150.0), (6.8, 6.2, 6.5), shoulder_color, "Right Deltoid / Shoulder"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(22.5, 0.0, 150.0),
+            p1=(32.0, 8.0, 126.0),
+            r0=(5.3, 5.0),
+            r1=(4.3, 4.1),
+            color_hex=upper_arm_color,
+            label="Right Bicep / Tricep",
+            bulge=0.18,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((32.0, 8.0, 126.0), (4.2, 4.2, 4.2), mannequin_skin, "Right Elbow Joint"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(32.0, 8.0, 126.0),
+            p1=(26.0, 25.0, 138.0),
+            r0=(4.2, 4.0),
+            r1=(3.1, 2.9),
+            color_hex=mannequin_skin,
+            label="Right Forearm",
+            bulge=0.15,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((25.0, 28.0, 141.0), (3.6, 4.2, 3.4), jersey_hex, "Right Hand / Action Grip"))
+
+    # 4. THIGHS (QUADS / HAMSTRINGS), KNEES, CALVES & FEET
+    thigh_color = pick_color("Quads / Hamstrings", shorts_hex if soreness_level < 4 else sore_hex)
+    lower_thigh_color = pick_color("Quads / Hamstrings", mannequin_skin)
+    knee_color = pick_color("Knees / Patella", mannequin_skin)
+    calf_color = pick_color("Calves / Achilles", mannequin_skin)
+
+    # Left Leg
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(-10.5, 0.0, 92.0),
+            p1=(-13.5, 4.0, 52.0),
+            r0=(8.4, 8.2),
+            r1=(5.8, 5.6),
+            color_hex=thigh_color if muscle_focus == "Quads / Hamstrings" and soreness_level >= 4 else lower_thigh_color,
+            label="Left Quadriceps & Hamstrings",
+            bulge=0.20,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((-13.5, 4.0, 52.0), (5.6, 5.8, 5.2), knee_color, "Left Knee / Patella"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(-13.5, 4.0, 52.0),
+            p1=(-14.5, -1.0, 10.0),
+            r0=(5.4, 5.4),
+            r1=(3.4, 3.4),
+            color_hex=calf_color,
+            label="Left Calf (Gastrocnemius & Achilles)",
+            bulge=0.22,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((-14.5, 5.5, 5.0), (4.6, 9.5, 4.2), shoe_hex, "Left Athletic Shoe"))
+
+    # Right Leg
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(10.5, 0.0, 92.0),
+            p1=(13.5, 5.0, 52.0),
+            r0=(8.4, 8.2),
+            r1=(5.8, 5.6),
+            color_hex=thigh_color if muscle_focus == "Quads / Hamstrings" and soreness_level >= 4 else lower_thigh_color,
+            label="Right Quadriceps & Hamstrings",
+            bulge=0.20,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((13.5, 5.0, 52.0), (5.6, 5.8, 5.2), knee_color, "Right Knee / Patella"))
+    fig.add_trace(
+        _create_mannequin_limb_surface(
+            p0=(13.5, 5.0, 52.0),
+            p1=(14.5, 0.0, 10.0),
+            r0=(5.4, 5.4),
+            r1=(3.4, 3.4),
+            color_hex=calf_color,
+            label="Right Calf (Gastrocnemius & Achilles)",
+            bulge=0.22,
+        )
+    )
+    fig.add_trace(_create_mannequin_ellipsoid((14.5, 6.5, 5.0), (4.6, 9.5, 4.2), shoe_hex, "Right Athletic Shoe"))
+
+    # 5. FORCE-PLATE TELEMETRY PLATFORM RINGS ON FLOOR
+    theta_ring = np.linspace(0, 2 * np.pi, 50)
+    for radius, width_val in [(28.0, 3), (42.0, 5)]:
         fig.add_trace(
             go.Scatter3d(
-                x=sore_x,
-                y=sore_y,
-                z=sore_z,
+                x=radius * np.cos(theta_ring),
+                y=radius * np.sin(theta_ring),
+                z=np.zeros_like(theta_ring),
                 mode="lines",
-                line=dict(color=strain_hex, width=10),
-                name=f"Sore Area: {muscle_focus}",
+                line=dict(color=jersey_hex, width=width_val),
+                name="Force Plate Platform",
                 hoverinfo="skip",
-            )
-        )
-
-    theta = np.linspace(0, 2 * np.pi, 30)
-    hx = 7.5 * np.cos(theta)
-    hy = 2.0 + 7.5 * np.sin(theta)
-    hz = np.full_like(theta, 174.0)
-    fig.add_trace(
-        go.Scatter3d(
-            x=hx,
-            y=hy,
-            z=hz,
-            mode="lines",
-            line=dict(color="#22D3EE", width=4),
-            name="Head Tracking Halo",
-            hoverinfo="skip",
-        )
-    )
-
-    jx, jy, jz, j_names, j_colors, j_sizes = [], [], [], [], [], []
-    for name, (x, y, z) in joints.items():
-        jx.append(x)
-        jy.append(y)
-        jz.append(z)
-        clean_name = name.replace("_", " ")
-        j_names.append(f"<b>Joint:</b> {clean_name}<br><b>Height:</b> {z:.0f} cm<br><b>Readiness:</b> {readiness_index}%")
-
-        highlight = False
-        if muscle_focus == "Knees / Patella" and "Knee" in name:
-            highlight = True
-        elif muscle_focus == "Shoulders / Rotator Cuff" and ("Shoulder" in name or "Elbow" in name):
-            highlight = True
-        elif muscle_focus == "Quads / Hamstrings" and ("Hip" in name or "Knee" in name):
-            highlight = True
-        elif muscle_focus == "Calves / Achilles" and ("Ankle" in name or "Heel" in name or "Toe" in name):
-            highlight = True
-        elif muscle_focus == "Lower Back / Core" and ("Lumbar" in name or "Pelvis" in name or "Thoracic" in name):
-            highlight = True
-        elif muscle_focus == "Full Body Systemic" and soreness_level >= 6:
-            highlight = True
-
-        if highlight:
-            j_colors.append(strain_hex)
-            j_sizes.append(9 if name != "Head_Center" else 14)
-        else:
-            j_colors.append("#FFFFFF" if name != "Head_Center" else theme_hex)
-            j_sizes.append(6 if name != "Head_Center" else 13)
-
-    fig.add_trace(
-        go.Scatter3d(
-            x=jx,
-            y=jy,
-            z=jz,
-            mode="markers",
-            marker=dict(
-                size=j_sizes,
-                color=j_colors,
-                line=dict(color=theme_hex, width=2),
-                opacity=0.95,
-            ),
-            text=j_names,
-            hovertemplate="%{text}<extra></extra>",
-            name="Joint Nodes",
-        )
-    )
-
-    for radius, opacity_val in [(28.0, 0.35), (42.0, 0.65)]:
-        fx = radius * np.cos(theta)
-        fy = radius * np.sin(theta)
-        fz = np.zeros_like(theta)
-        fig.add_trace(
-            go.Scatter3d(
-                x=fx,
-                y=fy,
-                z=fz,
-                mode="lines",
-                line=dict(color=theme_hex, width=3 if radius == 42.0 else 2),
-                opacity=opacity_val,
-                name="Floor Balance Ring" if radius == 42.0 else "Inner Ring",
-                hoverinfo="skip",
-                showlegend=(radius == 42.0),
+                showlegend=False,
             )
         )
 
@@ -1145,24 +1174,15 @@ def build_3d_biomechanical_avatar(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=20, b=0),
-        height=520,
-        showlegend=True,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=0.01,
-            xanchor="center",
-            x=0.5,
-            bgcolor="rgba(11, 15, 25, 0.75)",
-            font=dict(size=11, color="#E5E7EB"),
-        ),
+        margin=dict(l=0, r=0, t=10, b=0),
+        height=540,
+        showlegend=False,
         scene=dict(
             dragmode="turntable",
             xaxis=dict(title="", range=[-65, 65], showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, showticklabels=False, showbackground=False),
             yaxis=dict(title="", range=[-65, 65], showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, showticklabels=False, showbackground=False),
             zaxis=dict(title="Height (cm)", range=[0, 195], showgrid=True, gridcolor="rgba(6, 182, 212, 0.12)", zeroline=False, showbackground=True, backgroundcolor="rgba(11, 15, 25, 0.45)"),
-            camera=dict(eye=dict(x=1.45, y=1.55, z=0.65), center=dict(x=0, y=0, z=-0.05)),
+            camera=dict(eye=dict(x=1.35, y=1.55, z=0.55), center=dict(x=0, y=0, z=-0.03)),
             aspectmode="manual",
             aspectratio=dict(x=1.0, y=1.0, z=1.45),
         ),
@@ -1659,9 +1679,9 @@ def render_pro_scouting_view(
     muscle_focus: str,
     soreness_level: int,
 ) -> None:
-    """Renders the Pro Scouting dropdowns, 3D rotatable avatar, and dual radar chart."""
-    st.markdown("### 🌟 Compare Yourself with World-Class Pro Athletes")
-    f_col1, f_col2, f_col3, f_col4 = st.columns([1.1, 1.3, 1.3, 1.1])
+    """Renders the Pro Scouting dropdowns, 3D rotatable human mannequin, and dual radar chart."""
+    st.markdown("### 🌟 Compare Yourself with 80+ International & League Stars")
+    f_col1, f_col2, f_col3, f_col4 = st.columns([1.1, 1.35, 1.35, 1.0])
 
     with f_col1:
         scout_sport = st.selectbox("1. Choose Sport", sports_list, index=sports_list.index(selected_sport), key="scout_sport")
@@ -1669,8 +1689,8 @@ def render_pro_scouting_view(
 
     with f_col2:
         scout_leagues = scout_sport_df["Team_League"].unique().tolist()
-        scout_league = st.selectbox("2. Choose League / Team", ["All Leagues"] + scout_leagues, index=0, key="scout_league")
-    if scout_league != "All Leagues":
+        scout_league = st.selectbox("2. National Team / League", ["All Teams & Leagues"] + scout_leagues, index=0, key="scout_league")
+    if scout_league != "All Teams & Leagues":
         scout_athlete_df = scout_sport_df[scout_sport_df["Team_League"] == scout_league]
     else:
         scout_athlete_df = scout_sport_df
@@ -1709,10 +1729,11 @@ def render_pro_scouting_view(
 
     with avatar_col:
         st.markdown(
-            f"#### 🧍 Interactive 3D Athlete Model — `{scout_row['Athlete']}` "
+            f"#### 🧍 3D Human Mannequin — `{scout_row['Athlete']}` "
             f"<span class='pill pill-blue' style='margin-left:8px;'>Click & Drag to Rotate 360°</span>",
             unsafe_allow_html=True,
         )
+        st.caption(f"Jersey synced to {scout_row['Team_League']} • Soreness heatmap active on: **{muscle_focus}**")
         st.plotly_chart(
             build_3d_biomechanical_avatar(
                 athlete_row=scout_row,
@@ -1769,6 +1790,15 @@ def render_pro_scouting_view(
             unsafe_allow_html=True,
         )
 
+    with st.expander(f"📋 Browse Complete {scout_sport} International & League Roster ({len(scout_sport_df)} Players)", expanded=False):
+        st.dataframe(
+            scout_sport_df[
+                ["Athlete", "Team_League", "Position", "OVR", "Pace", "Endurance", "Agility", "Power", "Tactical_IQ", "Recovery"]
+            ].sort_values("OVR", ascending=False),
+            use_container_width=True,
+            hide_index=True,
+        )
+
 
 # ==============================================================================
 # 8. MAIN APPLICATION ENTRYPOINT
@@ -1789,7 +1819,7 @@ def main() -> None:
     # --------------------------------------------------------------------------
     with st.sidebar:
         st.markdown("## ⚡ AERO-KINETIX AI")
-        st.caption("Smart Conditioning & Pro Scouting")
+        st.caption(f"Smart Conditioning & {len(athletes_df)}+ Pro Athletes")
 
         # 1. SIDEBAR NAVIGATION MENU
         st.markdown("### 🧭 Menu")
@@ -1798,7 +1828,7 @@ def main() -> None:
             [
                 "🏋️ Today's Workout & AI Coach",
                 "📈 Progress & History Charts",
-                "🌟 Pro Scouting & 3D Avatar",
+                "🌟 Pro Scouting & 3D Mannequin",
                 "🗂️ All-in-One Tabbed View",
             ],
             index=0,
@@ -1807,12 +1837,20 @@ def main() -> None:
 
         st.markdown("---")
 
-        # 2. SPORT & ATHLETE SELECTION
+        # 2. SPORT, LEAGUE & ATHLETE SELECTION
         st.markdown("### 🏆 Your Sport & Role Model")
         selected_sport = st.selectbox("Sport", sports_list, index=0)
         sport_subset = athletes_df[athletes_df["Sport"] == selected_sport]
-        selected_athlete_name = st.selectbox("Pro Inspiration", sport_subset["Athlete"].tolist(), index=0)
-        active_athlete = sport_subset[sport_subset["Athlete"] == selected_athlete_name].iloc[0]
+
+        sidebar_leagues = ["All Teams & Leagues"] + sport_subset["Team_League"].unique().tolist()
+        selected_sidebar_league = st.selectbox("Team / League Filter", sidebar_leagues, index=0)
+        if selected_sidebar_league != "All Teams & Leagues":
+            filtered_athletes = sport_subset[sport_subset["Team_League"] == selected_sidebar_league]
+        else:
+            filtered_athletes = sport_subset
+
+        selected_athlete_name = st.selectbox("Pro Inspiration", filtered_athletes["Athlete"].tolist(), index=0)
+        active_athlete = filtered_athletes[filtered_athletes["Athlete"] == selected_athlete_name].iloc[0]
 
         day_options = list(SPORT_WEEKLY_ROUTINES[selected_sport].keys())
         selected_day_routine = st.selectbox("Workout Day", day_options, index=0)
@@ -1823,9 +1861,9 @@ def main() -> None:
         st.markdown("### ❤️ Daily Body Check-In")
         sleep_hours = st.slider("🛌 Hours Slept Last Night", min_value=4.0, max_value=11.0, value=7.8, step=0.5)
         energy_level = st.slider("⚡ Energy & Motivation (1–10)", min_value=1, max_value=10, value=8)
-        soreness_level = st.slider("🩹 Muscle Soreness (1=Fresh, 10=Sore)", min_value=1, max_value=10, value=3)
+        soreness_level = st.slider("🩹 Muscle Soreness (1=Fresh, 10=Sore)", min_value=1, max_value=10, value=4)
         muscle_focus = st.selectbox(
-            "Area Feeling Most Sore",
+            "Area Feeling Most Sore (Highlights on 3D Mannequin)",
             [
                 "Quads / Hamstrings",
                 "Calves / Achilles",
@@ -1837,7 +1875,7 @@ def main() -> None:
             index=0,
         )
 
-        # 4. OPTIONAL WORKOUT DURATION / EFFORT (COLLAPSED FOR SIMPLICITY)
+        # 4. OPTIONAL WORKOUT DURATION / EFFORT
         with st.expander("⏱️ Adjust Workout Duration & Effort", expanded=False):
             planned_duration = st.slider("Duration (Minutes)", min_value=30, max_value=150, value=75, step=5)
             planned_rpe = st.slider("Target Effort RPE (1–10)", min_value=1, max_value=10, value=7)
@@ -1896,10 +1934,8 @@ def main() -> None:
             or_stat = "🟢 Key Saved" if openrouter_api_key.strip() else "⚪ Not Set"
             st.caption(f"Status — Groq: {g_stat} | OpenRouter: {or_stat}")
 
-    # Inject CSS synced to the active pro athlete's jersey color
     inject_custom_css(str(active_athlete["Jersey_Color"]))
 
-    # Calculate Readiness & ACWR
     telemetry = compute_readiness_and_acwr(
         sleep_hours=sleep_hours,
         soreness=soreness_level,
@@ -1917,7 +1953,7 @@ def main() -> None:
             <div>
                 <h1 class="welcome-title">⚡ {selected_sport} Conditioning & Scouting Hub</h1>
                 <div class="welcome-sub">
-                    Role Model: <b>{active_athlete['Athlete']}</b> ({active_athlete['Position']}) &nbsp;•&nbsp;
+                    Role Model: <b>{active_athlete['Athlete']}</b> ({active_athlete['Team_League']} • {active_athlete['Position']}) &nbsp;•&nbsp;
                     Protecting: <b>{muscle_focus}</b>
                 </div>
             </div>
@@ -1978,7 +2014,6 @@ def main() -> None:
             unsafe_allow_html=True,
         )
 
-    # Compute default adjusted sets for session logging
     temp_sched = build_adaptive_schedule(selected_sport, selected_day_routine, telemetry, muscle_focus)
     default_adj_sets = int(temp_sched["Recommended_Sets"].sum())
 
@@ -2018,7 +2053,7 @@ def main() -> None:
             telemetry,
         )
 
-    elif nav_selection == "🌟 Pro Scouting & 3D Avatar":
+    elif nav_selection == "🌟 Pro Scouting & 3D Mannequin":
         render_pro_scouting_view(
             athletes_df,
             sports_list,
@@ -2030,12 +2065,11 @@ def main() -> None:
         )
 
     else:
-        # All-in-One Tabbed View
         tab1, tab2, tab3 = st.tabs(
             [
                 "🏋️ Daily Adaptive Training & Coach",
                 "📈 Performance Trends & History Graphs",
-                "🌟 Pro Scouting & 3D Avatar Studio",
+                "🌟 Pro Scouting & 3D Mannequin Studio",
             ]
         )
         with tab1:
