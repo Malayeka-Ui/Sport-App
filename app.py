@@ -10,7 +10,7 @@ from datetime import datetime
 from openai import OpenAI
 
 # ==============================================================================
-# PAGE CONFIGURATION & STYLING
+# PAGE CONFIGURATION & THEME STYLING
 # ==============================================================================
 st.set_page_config(
     page_title="Badminton Pro-Hub",
@@ -105,10 +105,10 @@ if "training_schedule" not in st.session_state:
     st.session_state.training_schedule = [dict(item) for item in DEFAULT_SCHEDULE]
 
 # ==============================================================================
-# COMPUTATIONAL & ENGINE HELPERS
+# ENGINE & CALCULATION HELPERS
 # ==============================================================================
 def check_game_status(s1, s2):
-    """Enforces BWF 21-pt rules, deuce, and 30-pt sudden death cap."""
+    """Enforces BWF 21-pt rules, deuce past 20-20, and 30-pt sudden death cap."""
     if s1 >= 21 or s2 >= 21:
         diff = abs(s1 - s2)
         if diff >= 2:
@@ -159,10 +159,10 @@ def run_monte_carlo(s1, s2, server, n_simulations=1000):
 
 RULE_KNOWLEDGE_BASE = {
     "service height": "Under BWF Law 9.1.6, the whole shuttle must be below 1.15 meters (3.77 feet) from the court surface at the instant of racket impact.",
-    "fault": "Common BWF faults include: shuttle landing outside lines, passing through or under the net, touching the net during play, striking the shuttle before crossing the net, and double-hitting.",
+    "fault": "Common BWF faults include: shuttle landing outside lines, shuttle passing through or under the net, touching the net during play, striking the shuttle before crossing the net, and double-hitting.",
     "let": "A 'Let' halts play and replays the rally: called when an unforeseen hazard occurs, the shuttle breaks mid-rally, the receiver was not ready, or a stray shuttle enters the court.",
     "interval": "A 60-second break occurs when the leading score reaches 11 points in each set. A 120-second (2-minute) break is granted between consecutive sets.",
-    "doubles positioning": "Attacking setup: Front-and-back formation (rear player hits smashes/drops, front player intercepts net returns). Defensive setup: Side-by-side midcourt to cover all baseline smash angles.",
+    "doubles positioning": "Attacking setup: Front-and-back formation (rear player smashes/drops, front player intercepts net returns). Defensive setup: Side-by-side midcourt to cover all baseline smash angles.",
     "singles positioning": "Recover to the central T base (1-2 steps behind the service line intersection) with a synchronized split-step at the opponent's racket impact.",
 }
 
@@ -181,11 +181,10 @@ def match_internal_rules(query_lower):
     )
 
 def get_groq_openai_response(user_query, api_key):
-    """Zero UI exposure: uses GROQ_API_KEY from st.secrets and queries OpenAI models hosted on Groq."""
+    """Queries OpenAI models hosted on Groq using the OpenAI Python SDK."""
     if not api_key:
         return match_internal_rules(user_query.lower())
 
-    # Supported OpenAI model identifiers on Groq
     openai_models_on_groq = [
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
@@ -224,38 +223,112 @@ def get_groq_openai_response(user_query, api_key):
 
     return match_internal_rules(user_query.lower())
 
-def draw_tactical_court(serving_side):
-    """Draws a 2D BWF court map highlighting the active service box."""
+# ==============================================================================
+# ACCURATE 2D BADMINTON COURT RADAR
+# ==============================================================================
+def draw_tactical_court(server_label, p1_name, p2_name, is_even):
+    """
+    Renders accurate 2D BWF court map dynamically switching:
+    - Player 1 serving from bottom half
+    - Player 2 serving from top half
+    - Right Box (Even score) vs Left Box (Odd score)
+    - Diagonally opposite receiver target box
+    """
     fig = go.Figure()
 
-    # Outer court boundary
-    fig.add_shape(type="rect", x0=0, y0=0, x1=6.1, y1=13.4, line=dict(color="#2c3e50", width=3), fillcolor="#27ae60", opacity=0.3)
-    # Net line
-    fig.add_shape(type="line", x0=0, y0=6.7, x1=6.1, y1=6.7, line=dict(color="#ffffff", width=4, dash="solid"))
-    # Singles tramlines
+    # Full Court Green Surface (6.10m wide x 13.40m long)
+    fig.add_shape(
+        type="rect",
+        x0=0, y0=0, x1=6.1, y1=13.4,
+        line=dict(color="#ffffff", width=3),
+        fillcolor="#1e824c",
+        opacity=0.35,
+    )
+
+    # Net (Midcourt y = 6.70m)
+    fig.add_shape(type="line", x0=-0.3, y0=6.7, x1=6.4, y1=6.7, line=dict(color="#ffffff", width=4, dash="dash"))
+
+    # Singles inner side tramlines (0.46m from boundary)
     fig.add_shape(type="line", x0=0.46, y0=0, x1=0.46, y1=13.4, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=5.64, y0=0, x1=5.64, y1=13.4, line=dict(color="#ffffff", width=2))
-    # Short service lines
+
+    # Short service lines (1.98m from net -> y = 4.72m and y = 8.68m)
     fig.add_shape(type="line", x0=0, y0=4.72, x1=6.1, y1=4.72, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=0, y0=8.68, x1=6.1, y1=8.68, line=dict(color="#ffffff", width=2))
-    # Center lines
+
+    # Doubles long service lines (0.76m inside baselines)
+    fig.add_shape(type="line", x0=0, y0=0.76, x1=6.1, y1=0.76, line=dict(color="#dcdde1", width=1, dash="dot"))
+    fig.add_shape(type="line", x0=0, y0=12.64, x1=6.1, y1=12.64, line=dict(color="#dcdde1", width=1, dash="dot"))
+
+    # Center service lines (x = 3.05m)
     fig.add_shape(type="line", x0=3.05, y0=0, x1=3.05, y1=4.72, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=3.05, y0=8.68, x1=3.05, y1=13.4, line=dict(color="#ffffff", width=2))
 
-    # Highlight active service box
-    if serving_side == "RIGHT":
-        fig.add_shape(type="rect", x0=3.05, y0=0, x1=5.64, y1=4.72, fillcolor="#f1c40f", opacity=0.6, line=dict(color="#d35400", width=2))
-        fig.add_annotation(x=4.35, y=2.36, text="ACTIVE SERVE BOX", showarrow=False, font=dict(color="#ffffff", size=10, family="Arial Black"))
+    # Compute server & diagonal target receiver boxes
+    if server_label == "Player 1":
+        serving_player_name = p1_name
+        receiving_player_name = p2_name
+        if is_even:
+            # Bottom-Right server -> Top-Left receiver (viewer perspective)
+            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, 5.64, 0, 4.72
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 0.46, 3.05, 8.68, 13.4
+            side_str = "Right Court (Even)"
+        else:
+            # Bottom-Left server -> Top-Right receiver
+            srv_x0, srv_x1, srv_y0, srv_y1 = 0.46, 3.05, 0, 4.72
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, 5.64, 8.68, 13.4
+            side_str = "Left Court (Odd)"
     else:
-        fig.add_shape(type="rect", x0=0.46, y0=0, x1=3.05, y1=4.72, fillcolor="#f1c40f", opacity=0.6, line=dict(color="#d35400", width=2))
-        fig.add_annotation(x=1.75, y=2.36, text="ACTIVE SERVE BOX", showarrow=False, font=dict(color="#ffffff", size=10, family="Arial Black"))
+        serving_player_name = p2_name
+        receiving_player_name = p1_name
+        if is_even:
+            # Top-Left server -> Bottom-Right receiver
+            srv_x0, srv_x1, srv_y0, srv_y1 = 0.46, 3.05, 8.68, 13.4
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, 5.64, 0, 4.72
+            side_str = "Right Court (Even)"
+        else:
+            # Top-Right server -> Bottom-Left receiver
+            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, 5.64, 8.68, 13.4
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 0.46, 3.05, 0, 4.72
+            side_str = "Left Court (Odd)"
+
+    # Highlight Active Serving Box
+    fig.add_shape(
+        type="rect",
+        x0=srv_x0, y0=srv_y0, x1=srv_x1, y1=srv_y1,
+        fillcolor="#f39c12", opacity=0.7,
+        line=dict(color="#d35400", width=3),
+    )
+    fig.add_annotation(
+        x=(srv_x0 + srv_x1) / 2, y=(srv_y0 + srv_y1) / 2,
+        text=f"🏸 SERVING<br><b>{serving_player_name}</b>",
+        showarrow=False,
+        font=dict(color="#ffffff", size=10, family="Arial Black"),
+    )
+
+    # Highlight Target Receiver Box
+    fig.add_shape(
+        type="rect",
+        x0=rcv_x0, y0=rcv_y0, x1=rcv_x1, y1=rcv_y1,
+        fillcolor="#2980b9", opacity=0.6,
+        line=dict(color="#1abc9c", width=2, dash="dot"),
+    )
+    fig.add_annotation(
+        x=(rcv_x0 + rcv_x1) / 2, y=(rcv_y0 + rcv_y1) / 2,
+        text=f"🎯 RECEIVING<br><b>{receiving_player_name}</b>",
+        showarrow=False,
+        font=dict(color="#ffffff", size=10, family="Arial Black"),
+    )
+
+    fig.add_annotation(x=3.05, y=-0.5, text=f"🔻 {p1_name} Side", showarrow=False, font=dict(color="#ecf0f1", size=11))
+    fig.add_annotation(x=3.05, y=13.9, text=f"🔺 {p2_name} Side", showarrow=False, font=dict(color="#ecf0f1", size=11))
 
     fig.update_layout(
-        title=f"Court Radar: Serving from {serving_side} Court",
-        xaxis=dict(range=[-0.5, 6.6], visible=False),
-        yaxis=dict(range=[-0.5, 13.9], visible=False),
+        title=f"Court Radar: {serving_player_name} serving from {side_str}",
+        xaxis=dict(range=[-0.6, 6.7], visible=False),
+        yaxis=dict(range=[-1.0, 14.4], visible=False),
         width=380,
-        height=320,
+        height=380,
         margin=dict(l=10, r=10, t=40, b=10),
         plot_bgcolor="#1e272e",
     )
@@ -394,7 +467,15 @@ if nav_choice == "🏸 Live Tactical Scorer":
         st.progress(int(p1_prob))
 
     with court_col:
-        st.plotly_chart(draw_tactical_court(court_side), use_container_width=True)
+        st.plotly_chart(
+            draw_tactical_court(
+                server_label=st.session_state.server,
+                p1_name=st.session_state.p1_name,
+                p2_name=st.session_state.p2_name,
+                is_even=is_even,
+            ),
+            use_container_width=True,
+        )
 
     if st.session_state.match_history:
         st.markdown("---")
@@ -424,7 +505,6 @@ elif nav_choice == "🤖 AI Rules & Tactical Coach":
     st.header("🤖 AI Rules Arbiter & Tactical Coach")
     st.caption("Powered by OpenAI Models on Groq LPU Architecture & BWF Regulations Engine")
 
-    # API key is securely loaded from Streamlit Secrets with no input box in the UI
     groq_api_key = st.secrets.get("GROQ_API_KEY", "")
 
     if groq_api_key:
@@ -750,7 +830,7 @@ elif nav_choice == "⚙️ Racket & Tension Optimizer":
 
     st.markdown("---")
     st.subheader("📋 Personalized Equipment Recommendation")
-    
+
     t1, t2, t3 = st.columns(3)
     t1.metric("Recommended Tension Range", f"{low_t} - {high_t} lbs")
     t2.metric("Optimal Racket Balance", racket_balance.split()[0])
