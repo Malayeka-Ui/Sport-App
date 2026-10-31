@@ -52,6 +52,15 @@ st.markdown(
         font-weight: bold;
         margin-bottom: 10px;
     }
+    .warmup-card {
+        border: 2px solid #0d6efd;
+        background: #fdfefe;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin: 10px 0px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -143,7 +152,7 @@ def trigger_speech(text):
                         synth.speak(utter);
                     }}
                 }} catch (e) {{
-                    console.error("Audio synthesis error:", e);
+                    console.error("Audio error:", e);
                 }}
             }})();
         </script>
@@ -178,12 +187,10 @@ defaults = {
     "game_over": False,
     "match_over": False,
     "match_winner": "",
-    # --- Match Clock State ---
     "match_running": False,
     "match_start_time": None,
     "accumulated_match_time": 0.0,
     "rally_start_time": time.time(),
-    # -------------------------
     "chat_messages": [
         {
             "role": "assistant",
@@ -194,6 +201,8 @@ defaults = {
     "tournament_players": "1: Viktor Axelsen\n2: Shi Yuqi\n3: Lee Zii Jia\n4: Anthony Ginting\nKodai Naraoka\nChou Tien Chen\nLoh Kean Yew\nPrannoy H. S.",
     "enable_audio": True,
     "court_allocations": {"Court 1": "Available", "Court 2": "Available", "Court 3": "Available"},
+    "warmup_index": 0,
+    "warmup_running": False,
 }
 
 for k, v in defaults.items():
@@ -342,12 +351,12 @@ nav_choice = st.sidebar.radio(
     "Modules",
     [
         "🏸 Live Tactical Scorer",
+        "🧘 Kinematic Warm-Up Guide",
         "🎞️ Match Point Replay",
         "📋 Tactical Debrief Report",
         "⏱️ Court Timers & Intervals",
         "🗺️ Shot Placement Heatmap",
         "🏃 Movement & Mileage Tracker",
-        "🧘 Kinematic Warm-Up Routine",
         "📊 Head-to-Head (H2H) Database",
         "🧵 String Tension Degradation",
         "⚖️ Racket Balance & Swing Weight",
@@ -369,7 +378,7 @@ st.sidebar.markdown("**Audible Score Announcements:**")
 st.session_state.enable_audio = st.sidebar.checkbox("🔊 Voice Umpire Enabled", value=st.session_state.enable_audio)
 
 # ==============================================================================
-# MODULE 1: LIVE TACTICAL SCORER (WITH START/PAUSE MATCH TIMER)
+# MODULE 1: LIVE TACTICAL SCORER (WITH LIVE SECOND-BY-SECOND WATCH)
 # ==============================================================================
 if nav_choice == "🏸 Live Tactical Scorer":
     st.header("🏸 Live Tactical Scorer & Multi-Game Manager")
@@ -387,25 +396,52 @@ if nav_choice == "🏸 Live Tactical Scorer":
             st.session_state.p2_partner = st.text_input("Team 2 Partner", value=st.session_state.p2_partner)
 
     # --------------------------------------------------------------------------
-    # MASTER MATCH CLOCK WITH START / PAUSE BUTTONS
+    # LIVE DIGITAL WATCH (TICKS CONTINUOUSLY EVERY SECOND IN REAL-TIME)
     # --------------------------------------------------------------------------
-    now_ts = time.time()
-
-    if st.session_state.match_running:
-        current_elapsed = st.session_state.accumulated_match_time + (now_ts - st.session_state.match_start_time)
-    else:
-        current_elapsed = st.session_state.accumulated_match_time
-
-    total_elapsed_sec = int(current_elapsed)
-    mins, secs = divmod(total_elapsed_sec, 60)
-    hrs, mins = divmod(mins, 60)
-    match_clock_str = f"{hrs:02d}:{mins:02d}:{secs:02d}"
-
     st.markdown("---")
-    tbar1, tbar2, tbar3, tbar4 = st.columns([1.5, 1.2, 1.2, 2])
+    tbar1, tbar2, tbar3, tbar4 = st.columns([2, 1.4, 1.2, 2])
+
+    now_ts = time.time()
+    if st.session_state.match_running:
+        base_seconds = int(st.session_state.accumulated_match_time + (now_ts - st.session_state.match_start_time))
+    else:
+        base_seconds = int(st.session_state.accumulated_match_time)
 
     with tbar1:
-        st.metric("⏱️ Match Duration", match_clock_str)
+        # Live self-updating browser digital stopwatch
+        clock_html = f"""
+        <div style="background:#1e272e; color:#2ecc71; border-radius:8px; padding:10px 14px; border:1px solid #34495e; font-family:Courier New, monospace;">
+            <div style="font-size:11px; text-transform:uppercase; color:#bdc3c7; letter-spacing:1px; margin-bottom:2px;">⏱️ Match Clock (Live)</div>
+            <div id="live-digital-watch" style="font-size:26px; font-weight:bold; letter-spacing:2px;">00:00:00</div>
+        </div>
+        <script>
+            (function() {{
+                var totalSec = {base_seconds};
+                var isRunning = {'true' if st.session_state.match_running else 'false'};
+                var display = document.getElementById('live-digital-watch');
+
+                function formatTime(s) {{
+                    var h = Math.floor(s / 3600);
+                    var m = Math.floor((s % 3600) / 60);
+                    var sec = s % 60;
+                    return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (sec < 10 ? "0" + sec : sec);
+                }}
+
+                display.innerText = formatTime(totalSec);
+
+                if (isRunning) {{
+                    if (window.badmintonWatchInterval) {{
+                        clearInterval(window.badmintonWatchInterval);
+                    }}
+                    window.badmintonWatchInterval = setInterval(function() {{
+                        totalSec++;
+                        display.innerText = formatTime(totalSec);
+                    }}, 1000);
+                }}
+            }})();
+        </script>
+        """
+        st.components.v1.html(clock_html, height=72)
 
     with tbar2:
         st.write("")
@@ -417,7 +453,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
                 st.rerun()
         else:
             if st.button("⏸️ Pause Match Clock", use_container_width=True):
-                st.session_state.accumulated_match_time += time.time() - st.session_state.match_start_time
+                st.session_state.accumulated_match_time += (time.time() - st.session_state.match_start_time)
                 st.session_state.match_running = False
                 st.session_state.match_start_time = None
                 trigger_speech("Match clock paused.")
@@ -432,7 +468,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
         if streak_count >= 3:
             st.markdown(f'<div class="streak-banner">🔥 MOMENTUM: {streak_holder} on a {streak_count}-Point Run!</div>', unsafe_allow_html=True)
         else:
-            st.info("Momentum balanced. Service turnover active.")
+            st.info("Momentum balanced. Standard rotation.")
 
     # Standings & Scoring
     sc_col1, sc_col2, sc_col3, sc_col4 = st.columns([1.5, 1.5, 2, 1])
@@ -485,7 +521,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
 
     # Change ends notification
     if st.session_state.current_game_num == 3 and (st.session_state.score_p1 == 11 or st.session_state.score_p2 == 11):
-        st.warning("⚠️ **BWF Change of Ends:** 11 points in deciding set. Players switch sides!")
+        st.warning("⚠️ **BWF Change of Ends:** 11 points reached in deciding set. Players switch sides!")
 
     # Game / Match transition
     if st.session_state.game_over and not st.session_state.match_over:
@@ -513,7 +549,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
                 save_match_to_db(
                     st.session_state.p1_name, st.session_state.p2_name,
                     st.session_state.match_mode, st.session_state.match_winner,
-                    summary_str, total_elapsed_sec, len(st.session_state.match_history), p1_s, p2_s
+                    summary_str, base_seconds, len(st.session_state.match_history), p1_s, p2_s
                 )
             else:
                 st.session_state.current_game_num += 1
@@ -529,7 +565,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
 
     # Scoring Buttons
     st.markdown("---")
-    st.subheader("Point Logger & Coordinate Placement")
+    st.subheader("Point Logger & Placement Tracker")
 
     p1_sectors = ["P2 Front-Left (Net)", "P2 Front-Right (Net)", "P2 Mid-Left (Drive)", "P2 Mid-Right (Drive)", "P2 Back-Left (Baseline)", "P2 Back-Right (Baseline)"]
     p2_sectors = ["P1 Front-Left (Net)", "P1 Front-Right (Net)", "P1 Mid-Left (Drive)", "P1 Mid-Right (Drive)", "P1 Back-Left (Baseline)", "P1 Back-Right (Baseline)"]
@@ -541,7 +577,6 @@ if nav_choice == "🏸 Live Tactical Scorer":
         p1_shot = st.selectbox("Point Outcome (Side 1)", shot_types, key="p1_st")
         p1_sec = st.selectbox("Landing Sector on Opponent Court", p1_sectors, key="p1_sec")
         if st.button(f"➕ Score for {st.session_state.p1_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
-            # Auto-start master clock if not already running
             if not st.session_state.match_running:
                 st.session_state.match_running = True
                 st.session_state.match_start_time = time.time()
@@ -590,7 +625,6 @@ if nav_choice == "🏸 Live Tactical Scorer":
         p2_shot = st.selectbox("Point Outcome (Side 2)", shot_types, key="p2_st")
         p2_sec = st.selectbox("Landing Sector on Opponent Court", p2_sectors, key="p2_sec")
         if st.button(f"➕ Score for {st.session_state.p2_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
-            # Auto-start master clock if not already running
             if not st.session_state.match_running:
                 st.session_state.match_running = True
                 st.session_state.match_start_time = time.time()
@@ -659,7 +693,129 @@ if nav_choice == "🏸 Live Tactical Scorer":
         )
 
 # ==============================================================================
-# MODULE 2: POINT REPLAY VISUALIZER
+# MODULE 2: INTERACTIVE KINEMATIC WARM-UP GUIDE
+# ==============================================================================
+elif nav_choice == "🧘 Kinematic Warm-Up Guide":
+    st.header("🧘 Badminton Kinematic Warm-Up Suite")
+    st.caption("Interactive, step-by-step tendon priming, joint mobility, and explosive neuromuscular activation.")
+
+    WARMUP_ROUTINES = [
+        {
+            "name": "Wrist & Forearm Dynamic Supination/Pronation",
+            "duration": 35,
+            "target": "Extensor/Flexor Carpi, Pronator Teres",
+            "instruction": "Hold racket or resistance arm forward. Rapidly rotate wrist inward and outward across full 180° range.",
+            "rationale": "Prevents lateral epicondylitis (tennis/badminton elbow) and prepares wrist snap for overhead smashes.",
+            "icon": "🔄"
+        },
+        {
+            "name": "Rotator Cuff Dynamic Internal & External Rotations",
+            "duration": 45,
+            "target": "Infraspinatus, Teres Minor, Subscapularis",
+            "instruction": "Elbows tucked at 90° to ribcage. Rotate forearms fully outward, pausing for 1s, then return controlled.",
+            "rationale": "Stabilizes the glenohumeral joint during high-speed deceleration following jump smashes.",
+            "icon": "💪"
+        },
+        {
+            "name": "Multi-Directional Lunges with Torso Rotation",
+            "duration": 50,
+            "target": "Adductors, Quadriceps, Gluteus Medius",
+            "instruction": "Step deep into front court net corner. Rotate torso toward lead knee. Alternate between Left and Right.",
+            "rationale": "Activates hip mobility and groin resilience required for baseline-to-net explosive recoveries.",
+            "icon": "🦵"
+        },
+        {
+            "name": "Achilles Tendon & Calf Eccentric Drop Bounces",
+            "duration": 40,
+            "target": "Achilles Tendon, Gastrocnemius, Soleus",
+            "instruction": "Light double-leg pogo hops on balls of feet, progressively increasing height and quickness off the floor.",
+            "rationale": "Warms up tendon stiffness to optimize elastic energy return during explosive split-steps.",
+            "icon": "⚡"
+        },
+        {
+            "name": "Thoracic Spine Mobilization & High-Clear Extension",
+            "duration": 40,
+            "target": "Thoracic Spine, Latissimus Dorsi, Core",
+            "instruction": "Reach overhead with full extension, opening chest to simulate arching smash preparation.",
+            "rationale": "Improves kinetic chain power transfer from ground reaction force through the racket head.",
+            "icon": "🏹"
+        },
+        {
+            "name": "Rapid Multi-Directional Split-Step Shadow Bursts",
+            "duration": 30,
+            "target": "Central Nervous System (CNS) & Reactive Agility",
+            "instruction": "Fast court stutter-steps followed by reactive split-step hops toward a randomly chosen corner.",
+            "rationale": "Fires up neuromuscular reaction pathways right before entering competitive tournament play.",
+            "icon": "🔥"
+        }
+    ]
+
+    mode_col, info_col = st.columns([2, 1])
+    with mode_col:
+        routine_intensity = st.radio("Warm-Up Protocol Mode:", ["⚡ Quick Match Activation (3.5 Mins)", "🏆 Full Tournament Kinematic Prep (Full Sequence)"], horizontal=True)
+    with info_col:
+        active_drills = WARMUP_ROUTINES[:4] if "Quick" in routine_intensity else WARMUP_ROUTINES
+        st.metric("Total Drills in Protocol", len(active_drills))
+
+    curr_idx = min(st.session_state.warmup_index, len(active_drills) - 1)
+    drill = active_drills[curr_idx]
+
+    # Visual Warm-Up Display Card
+    st.markdown(
+        f"""
+        <div class="warmup-card">
+            <span style="font-size: 34px;">{drill['icon']}</span>
+            <h2 style="margin: 8px 0px; color:#2c3e50;">Drill {curr_idx + 1} of {len(active_drills)}: {drill['name']}</h2>
+            <div style="font-size:16px; font-weight:600; color:#0d6efd; margin-bottom:12px;">🎯 Target Muscle Group: {drill['target']}</div>
+            <p style="font-size:16px; color:#34495e; max-width:800px; margin:0 auto;"><strong>Action:</strong> {drill['instruction']}</p>
+            <p style="font-size:14px; font-style:italic; color:#7f8c8d; margin-top:8px;">💡 <strong>Clinical Purpose:</strong> {drill['rationale']}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    ctrl1, ctrl2, ctrl3, ctrl4 = st.columns([2, 1, 1, 1])
+    with ctrl1:
+        if st.button(f"▶️ Start {drill['duration']}s Drill Timer", use_container_width=True):
+            trigger_speech(f"Starting {drill['name']}")
+            prog = st.progress(0)
+            time_box = st.empty()
+            drill_seconds = drill["duration"]
+
+            for sec in range(drill_seconds, -1, -1):
+                pct = (drill_seconds - sec) / drill_seconds
+                prog.progress(pct)
+                time_box.markdown(f"<h1 style='text-align:center; color:#e74c3c;'>⏳ {sec}s Remaining</h1>", unsafe_allow_html=True)
+                if sec == drill_seconds // 2:
+                    trigger_speech("Halfway done. Maintain good form.")
+                time.sleep(1)
+
+            trigger_speech("Exercise complete! Rest or advance to next.")
+            st.success("✅ Drill completed! Great activation.")
+
+    with ctrl2:
+        if st.button("⏮️ Previous", use_container_width=True, disabled=curr_idx == 0):
+            st.session_state.warmup_index = max(0, curr_idx - 1)
+            st.rerun()
+
+    with ctrl3:
+        if st.button("⏭️ Next Drill", use_container_width=True, disabled=curr_idx >= len(active_drills) - 1):
+            st.session_state.warmup_index = min(len(active_drills) - 1, curr_idx + 1)
+            st.rerun()
+
+    with ctrl4:
+        if st.button("🔄 Reset Suite", use_container_width=True):
+            st.session_state.warmup_index = 0
+            st.rerun()
+
+    st.markdown("---")
+    st.subheader("📋 Routine Drill Checklist")
+    for i, d in enumerate(active_drills):
+        status = "🟢 ACTIVE" if i == curr_idx else ("✅ COMPLETED" if i < curr_idx else "⚪ PENDING")
+        st.markdown(f"**{i+1}. {d['name']}** (`{d['duration']}s`) — *{status}*")
+
+# ==============================================================================
+# MODULE 3: POINT REPLAY VISUALIZER
 # ==============================================================================
 elif nav_choice == "🎞️ Match Point Replay":
     st.header("🎞️ Match Point Replay Visualizer & Flight Log")
@@ -694,7 +850,7 @@ elif nav_choice == "🎞️ Match Point Replay":
         st.plotly_chart(fig_rep, use_container_width=True)
 
 # ==============================================================================
-# MODULE 3: TACTICAL DEBRIEF REPORT
+# MODULE 4: TACTICAL DEBRIEF REPORT
 # ==============================================================================
 elif nav_choice == "📋 Tactical Debrief Report":
     st.header("📋 Post-Match Tactical Debrief & Performance Report")
@@ -724,7 +880,7 @@ elif nav_choice == "📋 Tactical Debrief Report":
             st.plotly_chart(fig_dur, use_container_width=True)
 
 # ==============================================================================
-# MODULE 4: COURT TIMERS & INTERVALS
+# MODULE 5: COURT TIMERS & INTERVALS
 # ==============================================================================
 elif nav_choice == "⏱️ Court Timers & Intervals":
     st.header("⏱️ Official BWF Court Timers & Interval Alarms")
@@ -778,7 +934,7 @@ elif nav_choice == "⏱️ Court Timers & Intervals":
             st.success("Warm-up complete!")
 
 # ==============================================================================
-# MODULE 5: SHOT PLACEMENT HEATMAP
+# MODULE 6: SHOT PLACEMENT HEATMAP
 # ==============================================================================
 elif nav_choice == "🗺️ Shot Placement Heatmap":
     st.header("🗺️ Interactive Shot Placement Heatmap")
@@ -801,7 +957,7 @@ elif nav_choice == "🗺️ Shot Placement Heatmap":
         st.plotly_chart(fig_heat, use_container_width=True)
 
 # ==============================================================================
-# MODULE 6: MOVEMENT & MILEAGE TRACKER
+# MODULE 7: MOVEMENT & MILEAGE TRACKER
 # ==============================================================================
 elif nav_choice == "🏃 Movement & Mileage Tracker":
     st.header("🏃 Court Movement & Mileage Tracker")
@@ -818,25 +974,6 @@ elif nav_choice == "🏃 Movement & Mileage Tracker":
     m3.metric("High-Impact Decelerations", f"~{int(rallies_count * 3.5)} stops")
 
     st.info("💡 **Physiological Note:** Badminton requires more explosive multi-directional direction-changes per minute than tennis or squash.")
-
-# ==============================================================================
-# MODULE 7: KINEMATIC WARM-UP ROUTINE
-# ==============================================================================
-elif nav_choice == "🧘 Kinematic Warm-Up Routine":
-    st.header("🧘 Badminton Kinematic Warm-Up Guide")
-    st.caption("Pre-match dynamic stretching and tendon activation sequence.")
-
-    warmup_steps = [
-        ("Wrist & Forearm Dynamic Rotations", "30 seconds", "Prepares extensor tendons for rapid racket pronation/supination."),
-        ("Multi-Directional Lunges (Groin Activation)", "45 seconds", "Deep corner lunges to activate adductors and hamstrings safely."),
-        ("Rotator Cuff External Band Rotations", "45 seconds", "Stabilizes posterior shoulder to support maximum-velocity smashes."),
-        ("Ankle Plantar & Dorsiflexion Hops", "30 seconds", "Primes Achilles tendon elasticity for explosive split-steps."),
-    ]
-
-    for title, dur, desc in warmup_steps:
-        st.markdown(f"#### 🏸 {title} (`{dur}`)")
-        st.write(desc)
-        st.markdown("---")
 
 # ==============================================================================
 # MODULE 8: HEAD-TO-HEAD (H2H) DATABASE
@@ -961,7 +1098,7 @@ elif nav_choice == "🤖 AI Rules & Tactical Coach":
                 system_prompt = "You are an elite BWF Certified Coach. Provide authoritative, concise tactical advice."
                 completion = client.chat.completions.create(
                     model="openai/gpt-oss-120b",
-                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_input}],
                     temperature=0.3,
                     max_tokens=600,
                 )
