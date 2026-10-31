@@ -31,16 +31,47 @@ st.markdown(
     }
     .court-box {
         border: 2px dashed #0d6efd;
-        border-radius: 6px;
-        padding: 12px;
+        border-radius: 8px;
+        padding: 14px;
         background-color: #f0f7ff;
         font-weight: 600;
         text-align: center;
+    }
+    .stButton>button {
+        border-radius: 6px;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+# ==============================================================================
+# DEFAULT TRAINING PRESETS
+# ==============================================================================
+DEFAULT_SCHEDULE = [
+    {"day": "Monday", "category": "Footwork & Agility", "drill": "6-Corner Shadow Footwork (4x20 reps)", "completed": False},
+    {"day": "Tuesday", "category": "Gym & Strength", "drill": "Squats, Lunges & Shoulder Rotator Cuff stability", "completed": False},
+    {"day": "Wednesday", "category": "On-Court Drills", "drill": "Net Kills, Drops & Half-Smash variations", "completed": False},
+    {"day": "Thursday", "category": "Cardio", "drill": "HIIT Court Sprints (30s on / 30s off)", "completed": False},
+    {"day": "Friday", "category": "Match Play", "drill": "Full competitive best-of-3 sets", "completed": False},
+]
+
+PRESET_TOURNAMENT_PREP = [
+    {"day": "Monday", "category": "Match Play", "drill": "High-intensity simulation match + tactical debrief", "completed": False},
+    {"day": "Tuesday", "category": "On-Court Drills", "drill": "Smash-defense transition + cross-court blocks (40 mins)", "completed": False},
+    {"day": "Wednesday", "category": "Footwork & Agility", "drill": "Deceptive split-step reactions + multi-shuttle feeds", "completed": False},
+    {"day": "Thursday", "category": "Cardio", "drill": "200m interval sprints x 6 + active stretch", "completed": False},
+    {"day": "Friday", "category": "On-Court Drills", "drill": "Service precision drill (50 short serves, 50 flick serves)", "completed": False},
+    {"day": "Saturday", "category": "Match Play", "drill": "Full 3-set test match with tournament line calls", "completed": False},
+]
+
+PRESET_FOOTWORK_FOCUS = [
+    {"day": "Monday", "category": "Footwork & Agility", "drill": "Corner lunging stability with 3-second hold (4x15)", "completed": False},
+    {"day": "Tuesday", "category": "Cardio", "drill": "Agility ladder drills + skipping rope (2,000 double unders)", "completed": False},
+    {"day": "Wednesday", "category": "Footwork & Agility", "drill": "Fast backward scissor kicks from front to baseline", "completed": False},
+    {"day": "Thursday", "category": "Gym & Strength", "drill": "Calf raises, hamstring curls, and explosive box jumps", "completed": False},
+    {"day": "Friday", "category": "Footwork & Agility", "drill": "Blind reaction drill with coach finger signals", "completed": False},
+]
 
 # ==============================================================================
 # SESSION STATE INITIALIZATION
@@ -71,19 +102,13 @@ if "chat_messages" not in st.session_state:
     ]
 
 if "training_schedule" not in st.session_state:
-    st.session_state.training_schedule = [
-        {"day": "Monday", "category": "Footwork & Agility", "drill": "6-Corner Shadow Footwork (4x20 reps)", "completed": False},
-        {"day": "Tuesday", "category": "Gym & Strength", "drill": "Squats, Lunges & Shoulder Rotator Cuff stability", "completed": False},
-        {"day": "Wednesday", "category": "On-Court Drills", "drill": "Net Kills, Drops & Half-Smash variations", "completed": False},
-        {"day": "Thursday", "category": "Cardio", "drill": "HIIT Court Sprints (30s on / 30s off)", "completed": False},
-        {"day": "Friday", "category": "Match Play", "drill": "Full competitive best-of-3 sets", "completed": False},
-    ]
+    st.session_state.training_schedule = [dict(item) for item in DEFAULT_SCHEDULE]
 
 # ==============================================================================
-# HELPER FUNCTIONS: RULES, SIMULATION & GROQ OPENAI INTEGRATION
+# COMPUTATIONAL & ENGINE HELPERS
 # ==============================================================================
 def check_game_status(s1, s2):
-    """Evaluates standard BWF 21-point rules, deuce past 20-20, and sudden-death cap at 30."""
+    """Enforces BWF 21-pt rules, deuce, and 30-pt sudden death cap."""
     if s1 >= 21 or s2 >= 21:
         diff = abs(s1 - s2)
         if diff >= 2:
@@ -95,7 +120,7 @@ def check_game_status(s1, s2):
     return False, ""
 
 def run_monte_carlo(s1, s2, server, n_simulations=1000):
-    """Simulates match outcomes using serving momentum advantage."""
+    """Simulates match outcomes factoring in serving momentum."""
     if s1 == s2 == 0:
         return 50.0, 50.0
 
@@ -134,17 +159,17 @@ def run_monte_carlo(s1, s2, server, n_simulations=1000):
 
 RULE_KNOWLEDGE_BASE = {
     "service height": "Under BWF Law 9.1.6, the whole shuttle must be below 1.15 meters (3.77 feet) from the court surface at the instant of racket impact.",
-    "fault": "Common BWF faults include: shuttle landing outside lines, shuttle passing through or under the net, touching the net during play, striking the shuttle before crossing the net, and double-hitting.",
+    "fault": "Common BWF faults include: shuttle landing outside lines, passing through or under the net, touching the net during play, striking the shuttle before crossing the net, and double-hitting.",
     "let": "A 'Let' halts play and replays the rally: called when an unforeseen hazard occurs, the shuttle breaks mid-rally, the receiver was not ready, or a stray shuttle enters the court.",
     "interval": "A 60-second break occurs when the leading score reaches 11 points in each set. A 120-second (2-minute) break is granted between consecutive sets.",
-    "doubles positioning": "Attacking setup: Front-and-back formation (rear player smashes/drops, front player intercepts net returns). Defensive setup: Side-by-side midcourt to cover all baseline smash angles.",
+    "doubles positioning": "Attacking setup: Front-and-back formation (rear player hits smashes/drops, front player intercepts net returns). Defensive setup: Side-by-side midcourt to cover all baseline smash angles.",
     "singles positioning": "Recover to the central T base (1-2 steps behind the service line intersection) with a synchronized split-step at the opponent's racket impact.",
 }
 
 def match_internal_rules(query_lower):
     for key, answer in RULE_KNOWLEDGE_BASE.items():
         if key in query_lower:
-            return f"**BWF Rule Directive:**\n\n{answer}"
+            return f"**BWF Official Rule Directive:**\n\n{answer}"
     if "serve" in query_lower:
         return "BWF Law 9: Both feet must stay stationary inside the service court. The racket must hit the shuttle base below 1.15m in an uninterrupted forward stroke."
     elif "net" in query_lower:
@@ -152,35 +177,89 @@ def match_internal_rules(query_lower):
     return (
         "**BWF Rule Engine (Offline Mode):**\n\n"
         "Ask about *'service height'*, *'touching net'*, *'let calls'*, *'intervals'*, or *'doubles positioning'*. "
-        "Enter your free Groq API key in the configuration panel above to unlock open-ended tactics and interactive advice."
+        "Set `GROQ_API_KEY` in Streamlit Secrets to enable open-ended AI tactical advice."
     )
 
-def get_groq_openai_response(user_query, api_key, model_name):
-    """Executes chat completions via Groq's OpenAI-compatible API endpoint."""
-    if api_key:
-        try:
-            client = OpenAI(
-                api_key=api_key,
-                base_url="https://api.groq.com/openai/v1",
-            )
-            system_prompt = (
-                "You are an elite BWF Certified High-Performance Badminton Coach and International Umpire. "
-                "Provide clear, tactical, rules-accurate, and concise advice. "
-                "Address footwork, racket tension, singles/doubles strategy, or BWF laws authoritatively."
-            )
-            chat_completion = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_query},
-                ],
-                temperature=0.3,
-                max_tokens=600,
-            )
-            return chat_completion.choices[0].message.content
-        except Exception as e:
-            return f"*(Groq API notice: {e}. Defaulting to offline knowledge base)*\n\n" + match_internal_rules(user_query.lower())
+def get_groq_openai_response(user_query, api_key):
+    """Zero UI exposure: uses GROQ_API_KEY from st.secrets and queries OpenAI models hosted on Groq."""
+    if not api_key:
+        return match_internal_rules(user_query.lower())
+
+    # Supported OpenAI model identifiers on Groq
+    openai_models_on_groq = [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+    ]
+
+    try:
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.groq.com/openai/v1",
+        )
+        system_prompt = (
+            "You are an elite BWF Certified High-Performance Badminton Coach and International Umpire. "
+            "Provide clear, tactical, rules-accurate, and concise advice. "
+            "Address footwork, racket tension, singles/doubles strategy, or BWF laws authoritatively."
+        )
+
+        for model_id in openai_models_on_groq:
+            try:
+                chat_completion = client.chat.completions.create(
+                    model=model_id,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_query},
+                    ],
+                    temperature=0.3,
+                    max_tokens=600,
+                )
+                return chat_completion.choices[0].message.content
+            except Exception as inner_e:
+                if "404" in str(inner_e) or "model_not_found" in str(inner_e):
+                    continue
+                raise inner_e
+
+    except Exception as e:
+        return f"*(Groq Service Notice: {e}. Defaulting to offline knowledge base)*\n\n" + match_internal_rules(user_query.lower())
+
     return match_internal_rules(user_query.lower())
+
+def draw_tactical_court(serving_side):
+    """Draws a 2D BWF court map highlighting the active service box."""
+    fig = go.Figure()
+
+    # Outer court boundary
+    fig.add_shape(type="rect", x0=0, y0=0, x1=6.1, y1=13.4, line=dict(color="#2c3e50", width=3), fillcolor="#27ae60", opacity=0.3)
+    # Net line
+    fig.add_shape(type="line", x0=0, y0=6.7, x1=6.1, y1=6.7, line=dict(color="#ffffff", width=4, dash="solid"))
+    # Singles tramlines
+    fig.add_shape(type="line", x0=0.46, y0=0, x1=0.46, y1=13.4, line=dict(color="#ffffff", width=2))
+    fig.add_shape(type="line", x0=5.64, y0=0, x1=5.64, y1=13.4, line=dict(color="#ffffff", width=2))
+    # Short service lines
+    fig.add_shape(type="line", x0=0, y0=4.72, x1=6.1, y1=4.72, line=dict(color="#ffffff", width=2))
+    fig.add_shape(type="line", x0=0, y0=8.68, x1=6.1, y1=8.68, line=dict(color="#ffffff", width=2))
+    # Center lines
+    fig.add_shape(type="line", x0=3.05, y0=0, x1=3.05, y1=4.72, line=dict(color="#ffffff", width=2))
+    fig.add_shape(type="line", x0=3.05, y0=8.68, x1=3.05, y1=13.4, line=dict(color="#ffffff", width=2))
+
+    # Highlight active service box
+    if serving_side == "RIGHT":
+        fig.add_shape(type="rect", x0=3.05, y0=0, x1=5.64, y1=4.72, fillcolor="#f1c40f", opacity=0.6, line=dict(color="#d35400", width=2))
+        fig.add_annotation(x=4.35, y=2.36, text="ACTIVE SERVE BOX", showarrow=False, font=dict(color="#ffffff", size=10, family="Arial Black"))
+    else:
+        fig.add_shape(type="rect", x0=0.46, y0=0, x1=3.05, y1=4.72, fillcolor="#f1c40f", opacity=0.6, line=dict(color="#d35400", width=2))
+        fig.add_annotation(x=1.75, y=2.36, text="ACTIVE SERVE BOX", showarrow=False, font=dict(color="#ffffff", size=10, family="Arial Black"))
+
+    fig.update_layout(
+        title=f"Court Radar: Serving from {serving_side} Court",
+        xaxis=dict(range=[-0.5, 6.6], visible=False),
+        yaxis=dict(range=[-0.5, 13.9], visible=False),
+        width=380,
+        height=320,
+        margin=dict(l=10, r=10, t=40, b=10),
+        plot_bgcolor="#1e272e",
+    )
+    return fig
 
 # ==============================================================================
 # SIDEBAR NAVIGATION
@@ -196,6 +275,7 @@ nav_choice = st.sidebar.radio(
         "🛍️ Local Equipment Finder",
         "📅 Training Schedule Planner",
         "❤️ Health, Fitness & Fatigue",
+        "⚙️ Racket & Tension Optimizer",
     ],
 )
 
@@ -230,32 +310,33 @@ if nav_choice == "🏸 Live Tactical Scorer":
 
     server_name = st.session_state.p1_name if st.session_state.server == "Player 1" else st.session_state.p2_name
     server_score = st.session_state.score_p1 if st.session_state.server == "Player 1" else st.session_state.score_p2
-    court_side = "RIGHT Court (Even Score)" if server_score % 2 == 0 else "LEFT Court (Odd Score)"
+    is_even = (server_score % 2 == 0)
+    court_side = "RIGHT" if is_even else "LEFT"
 
-    sc1, sc2, sc3 = st.columns(3)
-    with sc1:
+    top_c1, top_c2, top_c3 = st.columns([1.5, 1.5, 2])
+    with top_c1:
         st.metric(label=f"{st.session_state.p1_name} Score", value=st.session_state.score_p1)
-    with sc2:
+    with top_c2:
         st.metric(label=f"{st.session_state.p2_name} Score", value=st.session_state.score_p2)
-    with sc3:
+    with top_c3:
         st.markdown(
             f"""
             <div class="court-box">
-                🏸 Serving: {server_name}<br>
-                Service Box: {court_side}
+                🏸 Serving: <strong>{server_name}</strong><br>
+                Court Position: <strong>{court_side} Box ({'Even' if is_even else 'Odd'} Score)</strong>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
     if st.session_state.game_over:
-        st.success(f"🏆 Game Over! Winner: **{st.session_state.winner}**")
+        st.success(f"🏆 Match Finished! Winner: **{st.session_state.winner}**")
 
     st.subheader("Point Logger")
     shot_types = ["Smash Winner", "Drop Winner", "Net Kill", "Opponent Out", "Opponent Net Error", "Service Fault"]
 
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
+    btn_col1, btn_col2 = st.columns(2)
+    with btn_col1:
         st.markdown(f"**Award Point to: {st.session_state.p1_name}**")
         p1_shot = st.selectbox("Point Outcome (P1)", shot_types, key="p1_shot_select")
         if st.button(f"➕ Score for {st.session_state.p1_name}", disabled=st.session_state.game_over, use_container_width=True):
@@ -267,6 +348,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
                 "shot": p1_shot,
                 "p1_score": st.session_state.score_p1,
                 "p2_score": st.session_state.score_p2,
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
             })
             ended, win = check_game_status(st.session_state.score_p1, st.session_state.score_p2)
             if ended:
@@ -274,7 +356,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
                 st.session_state.winner = win
             st.rerun()
 
-    with col_btn2:
+    with btn_col2:
         st.markdown(f"**Award Point to: {st.session_state.p2_name}**")
         p2_shot = st.selectbox("Point Outcome (P2)", shot_types, key="p2_shot_select")
         if st.button(f"➕ Score for {st.session_state.p2_name}", disabled=st.session_state.game_over, use_container_width=True):
@@ -286,6 +368,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
                 "shot": p2_shot,
                 "p1_score": st.session_state.score_p1,
                 "p2_score": st.session_state.score_p2,
+                "timestamp": datetime.now().strftime("%H:%M:%S"),
             })
             ended, win = check_game_status(st.session_state.score_p1, st.session_state.score_p2)
             if ended:
@@ -294,23 +377,28 @@ if nav_choice == "🏸 Live Tactical Scorer":
             st.rerun()
 
     st.markdown("---")
-    st.subheader("🎲 Monte Carlo Win Forecaster (1,000 Simulations)")
-    if not st.session_state.game_over:
-        p1_prob, p2_prob = run_monte_carlo(
-            st.session_state.score_p1, st.session_state.score_p2, st.session_state.server
-        )
-    else:
-        p1_prob = 100.0 if st.session_state.winner == st.session_state.p1_name else 0.0
-        p2_prob = 100.0 - p1_prob
+    sim_col, court_col = st.columns([3, 2])
+    with sim_col:
+        st.subheader("🎲 Monte Carlo Win Forecaster (1,000 Simulations)")
+        if not st.session_state.game_over:
+            p1_prob, p2_prob = run_monte_carlo(
+                st.session_state.score_p1, st.session_state.score_p2, st.session_state.server
+            )
+        else:
+            p1_prob = 100.0 if st.session_state.winner == st.session_state.p1_name else 0.0
+            p2_prob = 100.0 - p1_prob
 
-    m1, m2 = st.columns(2)
-    m1.metric(f"{st.session_state.p1_name} Projected Win Rate", f"{p1_prob}%")
-    m2.metric(f"{st.session_state.p2_name} Projected Win Rate", f"{p2_prob}%")
-    st.progress(int(p1_prob))
+        m1, m2 = st.columns(2)
+        m1.metric(f"{st.session_state.p1_name} Win Prob.", f"{p1_prob}%")
+        m2.metric(f"{st.session_state.p2_name} Win Prob.", f"{p2_prob}%")
+        st.progress(int(p1_prob))
+
+    with court_col:
+        st.plotly_chart(draw_tactical_court(court_side), use_container_width=True)
 
     if st.session_state.match_history:
         st.markdown("---")
-        st.subheader("📊 Match Progression & Shot Analytics")
+        st.subheader("📊 Match Progression & Shot Breakdown")
         df_history = pd.DataFrame(st.session_state.match_history)
 
         graph_col1, graph_col2 = st.columns(2)
@@ -318,7 +406,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
             fig_timeline = go.Figure()
             fig_timeline.add_trace(go.Scatter(x=df_history["rally"], y=df_history["p1_score"], mode="lines+markers", name=st.session_state.p1_name, line=dict(color="#1f77b4", width=3)))
             fig_timeline.add_trace(go.Scatter(x=df_history["rally"], y=df_history["p2_score"], mode="lines+markers", name=st.session_state.p2_name, line=dict(color="#ff7f0e", width=3)))
-            fig_timeline.update_layout(title="Rally Score Progression", xaxis_title="Rally #", yaxis_title="Score", template="plotly_white")
+            fig_timeline.update_layout(title="Rally Progression Timeline", xaxis_title="Rally Number", yaxis_title="Score", template="plotly_white")
             st.plotly_chart(fig_timeline, use_container_width=True)
 
         with graph_col2:
@@ -326,28 +414,23 @@ if nav_choice == "🏸 Live Tactical Scorer":
             fig_shots = px.bar(shot_counts, x="shot", y="count", color="winner", barmode="group", title="Points Won by Shot Type", template="plotly_white")
             st.plotly_chart(fig_shots, use_container_width=True)
 
+        csv_data = df_history.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Export Full Match Log (CSV)", data=csv_data, file_name="badminton_match_log.csv", mime="text/csv")
+
 # ==============================================================================
-# MODULE 2: AI RULES ARBITER & TACTICAL COACH (GROQ VIA OPENAI SDK)
+# MODULE 2: AI RULES ARBITER & TACTICAL COACH (GROQ OPENAI MODELS)
 # ==============================================================================
 elif nav_choice == "🤖 AI Rules & Tactical Coach":
     st.header("🤖 AI Rules Arbiter & Tactical Coach")
-    st.caption("Powered by Groq Inference via the OpenAI Python Client & BWF Regulations Engine")
+    st.caption("Powered by OpenAI Models on Groq LPU Architecture & BWF Regulations Engine")
 
-    default_groq_key = st.secrets.get("GROQ_API_KEY", "")
+    # API key is securely loaded from Streamlit Secrets with no input box in the UI
+    groq_api_key = st.secrets.get("GROQ_API_KEY", "")
 
-    with st.expander("🔑 Configure Groq OpenAI-Compatible Settings"):
-        groq_api_key = st.text_input(
-            "Groq API Key (starts with gsk_):",
-            value=default_groq_key,
-            type="password",
-            help="Free key from console.groq.com. If omitted, the app uses built-in BWF rules.",
-        )
-        model_choice = st.selectbox(
-            "Select Groq Model:",
-            ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-            index=0,
-            help="70B offers the deepest tactical reasoning; 8B offers maximum generation speed.",
-        )
+    if groq_api_key:
+        st.success("🟢 AI Coach Engine Online (Connected to OpenAI Models via Groq)")
+    else:
+        st.info("⚪ Offline BWF Knowledge Base Active (Add GROQ_API_KEY to secrets to enable generative AI)")
 
     for msg in st.session_state.chat_messages:
         with st.chat_message(msg["role"]):
@@ -360,7 +443,7 @@ elif nav_choice == "🤖 AI Rules & Tactical Coach":
             st.markdown(user_input)
 
         with st.spinner("AI Coach analyzing with Groq..."):
-            response_text = get_groq_openai_response(user_input, groq_api_key, model_choice)
+            response_text = get_groq_openai_response(user_input, groq_api_key)
 
         st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
         with st.chat_message("assistant"):
@@ -460,13 +543,32 @@ elif nav_choice == "🛍️ Local Equipment Finder":
         st.markdown("**Local / Global Retail**\n[Amazon](https://www.amazon.com) | [Daraz](https://www.daraz.pk) | [Decathlon](https://www.decathlon.com)")
 
 # ==============================================================================
-# MODULE 4: TRAINING SCHEDULE & SESSION ORGANIZER
+# MODULE 4: TRAINING SCHEDULE & SESSION ORGANIZER (PRESETS & RESETS)
 # ==============================================================================
 elif nav_choice == "📅 Training Schedule Planner":
     st.header("📅 Training Schedule & Session Organizer")
-    st.caption("Plan, track, and export your weekly badminton training program.")
+    st.caption("Plan, track, reset, and export customized badminton training routines.")
 
-    with st.expander("➕ Add New Training Session"):
+    st.subheader("⚡ Quick Routine Presets & Reset Controls")
+    ctl1, ctl2, ctl3, ctl4 = st.columns(4)
+    with ctl1:
+        if st.button("🔄 Reset to Default Schedule", use_container_width=True):
+            st.session_state.training_schedule = [dict(item) for item in DEFAULT_SCHEDULE]
+            st.rerun()
+    with ctl2:
+        if st.button("🏆 Load Tournament Prep", use_container_width=True):
+            st.session_state.training_schedule = [dict(item) for item in PRESET_TOURNAMENT_PREP]
+            st.rerun()
+    with ctl3:
+        if st.button("⚡ Load Footwork Focus", use_container_width=True):
+            st.session_state.training_schedule = [dict(item) for item in PRESET_FOOTWORK_FOCUS]
+            st.rerun()
+    with ctl4:
+        if st.button("🗑️ Clear Entire Schedule", use_container_width=True):
+            st.session_state.training_schedule = []
+            st.rerun()
+
+    with st.expander("➕ Add Custom Training Session"):
         with st.form("new_drill_form"):
             form_day = st.selectbox("Day of Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
             form_cat = st.selectbox("Category", ["On-Court Drills", "Match Play", "Gym & Strength", "Footwork & Agility", "Cardio / Conditioning"])
@@ -481,29 +583,56 @@ elif nav_choice == "📅 Training Schedule Planner":
                 })
                 st.rerun()
 
-    st.subheader("Your Weekly Sessions")
-    for idx, session in enumerate(st.session_state.training_schedule):
-        c1, c2, c3, c4 = st.columns([1.5, 2, 4, 1])
-        c1.markdown(f"**{session['day']}**")
-        c2.markdown(f"`{session['category']}`")
-        c3.markdown(session["drill"])
-        completed_val = c4.checkbox("Done", value=session["completed"], key=f"drill_{idx}")
-        st.session_state.training_schedule[idx]["completed"] = completed_val
+    st.markdown("---")
+    st.subheader("Current Weekly Sessions")
+
+    if not st.session_state.training_schedule:
+        st.info("Your schedule is currently empty. Click one of the preset buttons above or add a drill.")
+    else:
+        indices_to_delete = []
+        for idx, session in enumerate(st.session_state.training_schedule):
+            c1, c2, c3, c4, c5 = st.columns([1.5, 2, 4.5, 1, 0.8])
+            c1.markdown(f"**{session['day']}**")
+            c2.markdown(f"`{session['category']}`")
+            c3.markdown(session["drill"])
+            completed_val = c4.checkbox("Done", value=session["completed"], key=f"drill_{idx}")
+            st.session_state.training_schedule[idx]["completed"] = completed_val
+            if c5.button("✖", key=f"del_{idx}", help="Remove this drill"):
+                indices_to_delete.append(idx)
+
+        if indices_to_delete:
+            for i in sorted(indices_to_delete, reverse=True):
+                st.session_state.training_schedule.pop(i)
+            st.rerun()
 
     st.markdown("---")
     completed_count = sum(1 for s in st.session_state.training_schedule if s["completed"])
     total_count = len(st.session_state.training_schedule)
     progress_val = completed_count / total_count if total_count > 0 else 0
-    st.write(f"**Weekly Completion Progress:** {completed_count}/{total_count} sessions ({int(progress_val*100)}%)")
+    st.write(f"**Weekly Completion Rate:** {completed_count}/{total_count} sessions ({int(progress_val*100)}%)")
     st.progress(progress_val)
 
-    json_schedule = json.dumps(st.session_state.training_schedule, indent=2)
-    st.download_button(
-        label="📥 Export Schedule as JSON",
-        data=json_schedule,
-        file_name="badminton_training_plan.json",
-        mime="application/json",
-    )
+    exp_col1, exp_col2 = st.columns(2)
+    with exp_col1:
+        json_schedule = json.dumps(st.session_state.training_schedule, indent=2)
+        st.download_button(
+            label="📥 Export Schedule as JSON",
+            data=json_schedule,
+            file_name="badminton_training_plan.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+    with exp_col2:
+        if st.session_state.training_schedule:
+            df_sched = pd.DataFrame(st.session_state.training_schedule)
+            csv_sched = df_sched.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="📥 Export Schedule as CSV",
+                data=csv_sched,
+                file_name="badminton_training_plan.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
 
 # ==============================================================================
 # MODULE 5: HEALTH, FITNESS & FATIGUE TRACKER
@@ -583,5 +712,56 @@ elif nav_choice == "❤️ Health, Fitness & Fatigue":
             - **Patellar Tendon (Jumper's Knee):** Foam roll quadriceps and IT band; incorporate isometric Spanish squats.
             - **Shoulder Rotator Cuff:** Internal & external resistance band rotations (3x15) to maintain posterior shoulder balance against explosive smash velocity.
             - **Ankle Sprain Mitigation:** High-friction non-marking badminton shoes and lateral hopping drills to reinforce stabilizing ankle ligaments.
+            """
+        )
+
+# ==============================================================================
+# MODULE 6: RACKET & TENSION OPTIMIZER
+# ==============================================================================
+elif nav_choice == "⚙️ Racket & Tension Optimizer":
+    st.header("⚙️ Racket & Tension Optimizer")
+    st.caption("Calculate optimal string tension, string gauge, and racket balance for your playing style.")
+
+    col_lvl, col_style, col_shuttle = st.columns(3)
+    with col_lvl:
+        player_exp = st.selectbox("Player Experience Level", ["Beginner (0-1 yr)", "Intermediate (1-3 yrs)", "Advanced / Club Player", "Professional / Elite"])
+    with col_style:
+        play_style = st.selectbox("Playing Style", ["Aggressive Attacker / Smasher", "Control & Tactical Net Play", "All-Round / Defensive Counter"])
+    with col_shuttle:
+        shuttle_type = st.selectbox("Shuttlecock Type", ["Feather Shuttlecocks (Goose/Duck)", "Nylon / Plastic Shuttles (Mavis)"])
+
+    base_tensions = {
+        "Beginner (0-1 yr)": (20, 22),
+        "Intermediate (1-3 yrs)": (23, 25),
+        "Advanced / Club Player": (26, 28),
+        "Professional / Elite": (29, 32),
+    }
+    low_t, high_t = base_tensions[player_exp]
+
+    if shuttle_type.startswith("Nylon"):
+        low_t -= 2
+        high_t -= 2
+        shuttle_note = "Plastic shuttles are heavier and stiffer; lower tension protects your racket frame and prevents golfer's elbow."
+    else:
+        shuttle_note = "Feather shuttles provide clean aerodynamic trajectory suited for crisp string beds."
+
+    racket_balance = "Head-Heavy (e.g., Yonex Astrox / Victor Thruster)" if "Attacker" in play_style else ("Even-Balance (e.g., Yonex Arcsaber)" if "Control" in play_style else "Head-Light (e.g., Yonex Nanoflare)")
+    rec_string = "Yonex BG66 Ultimax (0.65mm) / Li-Ning No.1" if "Advanced" in player_exp or "Attacker" in play_style else "Yonex BG65 (0.70mm) / Victor VBS-70 (Ultra Durable)"
+
+    st.markdown("---")
+    st.subheader("📋 Personalized Equipment Recommendation")
+    
+    t1, t2, t3 = st.columns(3)
+    t1.metric("Recommended Tension Range", f"{low_t} - {high_t} lbs")
+    t2.metric("Optimal Racket Balance", racket_balance.split()[0])
+    t3.metric("Recommended String Gauge", rec_string.split()[1])
+
+    st.info(f"**Shuttlecock Factor:** {shuttle_note}")
+
+    with st.expander("🔬 Physics of String Tension (Repulsion vs. Control)"):
+        st.markdown(
+            """
+            - **Lower Tension (20-23 lbs):** Generates a larger trampoline effect with a huge sweet spot. Produces effortless depth for clears and protects the forearm tendons from vibrations.
+            - **Higher Tension (26-30+ lbs):** Smaller sweet spot requiring precise hitting technique. Produces crisp feedback, fast shuttle repulsion off the racket face, and superior spin control on net slices.
             """
         )
