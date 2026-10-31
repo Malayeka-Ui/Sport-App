@@ -17,10 +17,10 @@ except ImportError:
 
 
 # ==============================================================================
-# 1. PAGE CONFIGURATION & FUTURISTIC DARK SPORTS-LAB CSS
+# 1. PAGE CONFIGURATION & USER-FRIENDLY DARK THEME CSS
 # ==============================================================================
 st.set_page_config(
-    page_title="AERO-KINETIX AI | Sports Science & Scouting Lab",
+    page_title="AERO-KINETIX AI | Smart Sports Coach",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -28,202 +28,191 @@ st.set_page_config(
 
 
 def inject_custom_css(accent_hex: str = "#10B981") -> None:
-    """Injects futuristic dark glassmorphic styling with dynamic athlete accent colors."""
+    """Injects clean, modern, user-friendly dark styling with styled sidebar navigation."""
     st.markdown(
         f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         :root {{
-            --bg-obsidian: #0B0F19;
-            --bg-card: rgba(17, 24, 39, 0.78);
-            --bg-card-hover: rgba(31, 41, 55, 0.88);
-            --accent-primary: #10B981;
+            --bg-main: #0B0F19;
+            --bg-card: rgba(20, 29, 47, 0.85);
+            --accent-green: #10B981;
             --accent-cyan: #06B6D4;
             --accent-athlete: {accent_hex};
-            --text-main: #F9FAFB;
-            --text-muted: #9CA3AF;
-            --border-glass: rgba(255, 255, 255, 0.09);
+            --text-light: #F9FAFB;
+            --text-dim: #9CA3AF;
         }}
 
         .stApp {{
-            background: radial-gradient(circle at 12% 10%, rgba(16, 185, 129, 0.08), transparent 32%),
-                        radial-gradient(circle at 88% 15%, rgba(6, 182, 212, 0.08), transparent 35%),
-                        linear-gradient(180deg, #070A12 0%, #0B0F19 50%, #090D16 100%);
-            color: var(--text-main);
+            background: radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.08), transparent 35%),
+                        radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.08), transparent 35%),
+                        #0B0F19;
+            color: var(--text-light);
             font-family: 'Inter', sans-serif;
         }}
 
         section[data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, #0D1322 0%, #090D18 100%) !important;
-            border-right: 1px solid rgba(6, 182, 212, 0.18);
+            background: #0E1525 !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }}
 
-        /* Top Hero Banner */
-        .hero-banner {{
-            background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(11, 15, 25, 0.95) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.28);
-            border-left: 5px solid var(--accent-athlete);
+        /* Style Sidebar Radio Buttons as a Modern Navigation Menu */
+        div[role="radiogroup"] > label {{
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            padding: 10px 14px !important;
+            margin-bottom: 6px !important;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }}
+
+        div[role="radiogroup"] > label:hover {{
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.4);
+        }}
+
+        /* Friendly Welcome Header */
+        .welcome-banner {{
+            background: linear-gradient(135deg, rgba(20, 29, 47, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 6px solid var(--accent-athlete);
             border-radius: 16px;
-            padding: 1.35rem 1.75rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(16, 185, 129, 0.06);
+            padding: 1.25rem 1.6rem;
+            margin-bottom: 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }}
 
-        .hero-title {{
-            font-size: 1.65rem;
+        .welcome-title {{
+            font-size: 1.55rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
-            background: linear-gradient(90deg, #FFFFFF 0%, #10B981 55%, #06B6D4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             margin: 0;
+            color: #FFFFFF;
         }}
 
-        .hero-subtitle {{
+        .welcome-sub {{
             color: #9CA3AF;
-            font-size: 0.88rem;
-            margin-top: 0.25rem;
+            font-size: 0.92rem;
+            margin-top: 4px;
         }}
 
-        /* Glassmorphic Telemetry Cards */
-        .glass-card {{
+        /* Friendly Summary Cards */
+        .friendly-card {{
             background: var(--bg-card);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid var(--border-glass);
-            border-radius: 14px;
-            padding: 1.15rem 1.3rem;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 16px;
+            padding: 1.2rem 1.35rem;
             margin-bottom: 1rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }}
 
-        .glass-card:hover {{
-            border-color: rgba(6, 182, 212, 0.35);
-        }}
-
-        .metric-label {{
-            font-size: 0.74rem;
-            text-transform: uppercase;
-            letter-spacing: 0.09em;
-            color: #9CA3AF;
+        .card-label {{
+            font-size: 0.82rem;
             font-weight: 600;
-            margin-bottom: 0.3rem;
+            color: #9CA3AF;
+            margin-bottom: 0.35rem;
         }}
 
-        .metric-value {{
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.85rem;
-            font-weight: 700;
-            color: #F9FAFB;
-            line-height: 1.15;
+        .card-big-value {{
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            line-height: 1.2;
         }}
 
-        .metric-sub {{
-            font-size: 0.78rem;
-            margin-top: 0.35rem;
-            font-weight: 500;
+        .card-helper {{
+            font-size: 0.82rem;
+            color: #D1D5DB;
+            margin-top: 0.45rem;
         }}
 
-        /* Status Badges */
-        .status-badge {{
-            display: inline-block;
-            padding: 0.22rem 0.68rem;
+        /* Progress Bar inside Cards */
+        .progress-track {{
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 999px;
-            font-size: 0.73rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            margin-top: 8px;
         }}
 
-        .badge-optimal {{
-            background: rgba(16, 185, 129, 0.16);
+        /* Pills / Badges */
+        .pill {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }}
+
+        .pill-green {{
+            background: rgba(16, 185, 129, 0.18);
             color: #34D399;
             border: 1px solid rgba(16, 185, 129, 0.4);
         }}
 
-        .badge-caution {{
-            background: rgba(245, 158, 11, 0.16);
+        .pill-yellow {{
+            background: rgba(245, 158, 11, 0.18);
             color: #FBBF24;
             border: 1px solid rgba(245, 158, 11, 0.4);
         }}
 
-        .badge-danger {{
+        .pill-red {{
             background: rgba(239, 68, 68, 0.18);
             color: #F87171;
-            border: 1px solid rgba(239, 68, 68, 0.45);
+            border: 1px solid rgba(239, 68, 68, 0.4);
         }}
 
-        .badge-info {{
-            background: rgba(6, 182, 212, 0.16);
+        .pill-blue {{
+            background: rgba(6, 182, 212, 0.18);
             color: #22D3EE;
             border: 1px solid rgba(6, 182, 212, 0.4);
         }}
 
-        /* AI Coach Terminal Box */
-        .coach-terminal {{
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(6, 182, 212, 0.08) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            border-left: 4px solid #10B981;
-            border-radius: 14px;
-            padding: 1.2rem 1.4rem;
-            margin: 0.85rem 0 1.25rem 0;
-            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.08);
+        /* AI Coach Message Bubble */
+        .coach-box {{
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.09) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin: 0.5rem 0 1.25rem 0;
         }}
 
-        .coach-header {{
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #10B981;
-            margin-bottom: 0.45rem;
+        .coach-title {{
+            font-size: 0.88rem;
             font-weight: 700;
+            color: #34D399;
+            margin-bottom: 0.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }}
 
-        .coach-body {{
-            font-size: 0.96rem;
-            line-height: 1.62;
-            color: #E5E7EB;
+        .coach-message {{
+            font-size: 1.0rem;
+            line-height: 1.65;
+            color: #F3F4F6;
         }}
 
-        /* Drill Prescription Row */
-        .drill-card {{
-            background: rgba(15, 23, 42, 0.82);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-left: 3px solid var(--accent-cyan);
-            border-radius: 10px;
-            padding: 0.85rem 1.1rem;
-            margin-bottom: 0.65rem;
+        /* Workout Step Card */
+        .workout-step {{
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid #06B6D4;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 0.5rem;
-        }}
-
-        /* Tabs Styling */
-        button[data-baseweb="tab"] {{
-            background-color: rgba(17, 24, 39, 0.65) !important;
-            border-radius: 10px 10px 0 0 !important;
-            margin-right: 6px !important;
-            padding: 10px 20px !important;
-            color: #9CA3AF !important;
-            font-weight: 600 !important;
-            border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        }}
-
-        button[data-baseweb="tab"][aria-selected="true"] {{
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.22), rgba(6, 182, 212, 0.18)) !important;
-            color: #FFFFFF !important;
-            border-bottom: 2px solid #10B981 !important;
+            gap: 0.75rem;
         }}
         </style>
         """,
@@ -232,10 +221,10 @@ def inject_custom_css(accent_hex: str = "#10B981") -> None:
 
 
 # ==============================================================================
-# 2. EMBEDDED MULTI-SPORT DATABASE & 28-DAY HISTORICAL TRAINING GENERATOR
+# 2. MULTI-SPORT PRO ATHLETE DATABASE & 28-DAY HISTORY GENERATOR
 # ==============================================================================
 def get_pro_athletes_db() -> pd.DataFrame:
-    """Returns a comprehensive multi-sport database of elite world athletes."""
+    """Returns multi-sport athlete profiles with traits and jersey colors."""
     athletes = [
         # BADMINTON
         {
@@ -251,7 +240,7 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 93,
             "OVR": 95,
             "Jersey_Color": "#EF4444",
-            "Signature_Style": "Steep-angle overhead jump smashes & impenetrable court coverage",
+            "Signature_Style": "Steep jump smashes & wide court reach",
         },
         {
             "Sport": "Badminton",
@@ -266,13 +255,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 95,
             "OVR": 97,
             "Jersey_Color": "#F59E0B",
-            "Signature_Style": "Deceptive wrist flicks, explosive net lunges & sixth-sense anticipation",
+            "Signature_Style": "Explosive net lunges & sixth-sense anticipation",
         },
         {
             "Sport": "Badminton",
             "Team_League": "BWF World Tour (South Korea)",
             "Athlete": "An Se-young",
-            "Position": "Women's Singles Defensive Retriever",
+            "Position": "Women's Singles Defensive Specialist",
             "Pace": 93,
             "Endurance": 99,
             "Agility": 97,
@@ -281,14 +270,14 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 98,
             "OVR": 95,
             "Jersey_Color": "#3B82F6",
-            "Signature_Style": "Relentless rally attrition, elastic split-steps & baseline consistency",
+            "Signature_Style": "Relentless rally stamina & elastic split-steps",
         },
         # FOOTBALL
         {
             "Sport": "Football",
             "Team_League": "La Liga (Real Madrid)",
             "Athlete": "Kylian Mbappé",
-            "Position": "Inside Forward / Striker",
+            "Position": "Forward / Striker",
             "Pace": 99,
             "Endurance": 89,
             "Agility": 95,
@@ -297,13 +286,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 91,
             "OVR": 94,
             "Jersey_Color": "#06B6D4",
-            "Signature_Style": "Supersonic transition sprints & clinical half-space finishing",
+            "Signature_Style": "Lightning counter-attack sprints & clinical finishing",
         },
         {
             "Sport": "Football",
             "Team_League": "Premier League (Manchester City)",
             "Athlete": "Erling Haaland",
-            "Position": "Target No. 9 Striker",
+            "Position": "Center Striker (No. 9)",
             "Pace": 94,
             "Endurance": 88,
             "Agility": 85,
@@ -312,13 +301,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 93,
             "OVR": 94,
             "Jersey_Color": "#38BDF8",
-            "Signature_Style": "Penalty-box predator, high-impulse vertical leaps & physical shielding",
+            "Signature_Style": "Explosive box power & aerial vertical leaps",
         },
         {
             "Sport": "Football",
             "Team_League": "La Liga (Real Madrid)",
             "Athlete": "Jude Bellingham",
-            "Position": "Box-to-Box Attacking Midfielder",
+            "Position": "Box-to-Box Midfielder",
             "Pace": 88,
             "Endurance": 97,
             "Agility": 91,
@@ -327,7 +316,7 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 94,
             "OVR": 93,
             "Jersey_Color": "#A855F7",
-            "Signature_Style": "Late box arrivals, high-volume pressing & spatial tempo control",
+            "Signature_Style": "All-pitch stamina, pressing & late box runs",
         },
         # BASKETBALL
         {
@@ -343,13 +332,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 99,
             "OVR": 96,
             "Jersey_Color": "#FACC15",
-            "Signature_Style": "Downhill freight-train drives, elite court vision & cryo-bio longevity",
+            "Signature_Style": "Power rim drives, elite playmaking & peak recovery",
         },
         {
             "Sport": "Basketball",
             "Team_League": "NBA (Golden State Warriors)",
             "Athlete": "Stephen Curry",
-            "Position": "Combo Guard (PG)",
+            "Position": "Point Guard (PG)",
             "Pace": 92,
             "Endurance": 99,
             "Agility": 97,
@@ -358,13 +347,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 94,
             "OVR": 95,
             "Jersey_Color": "#2563EB",
-            "Signature_Style": "Off-ball marathon relocations, sub-0.4s release & deep-range gravity",
+            "Signature_Style": "Constant off-ball movement & quick-release shooting",
         },
         {
             "Sport": "Basketball",
             "Team_League": "NBA (Denver Nuggets)",
             "Athlete": "Nikola Jokić",
-            "Position": "Point Center (C)",
+            "Position": "Center (C)",
             "Pace": 78,
             "Endurance": 95,
             "Agility": 86,
@@ -373,7 +362,7 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 95,
             "OVR": 96,
             "Jersey_Color": "#F97316",
-            "Signature_Style": "High-post orchestration, Sombor shuffle touch & elite rebound positioning",
+            "Signature_Style": "Full-court passing vision, post balance & touch",
         },
         # CRICKET
         {
@@ -389,13 +378,13 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 92,
             "OVR": 93,
             "Jersey_Color": "#10B981",
-            "Signature_Style": "High-elbow biomechanics, late-contact cover drives & crease balance",
+            "Signature_Style": "Smooth cover drives, head balance & crease footwork",
         },
         {
             "Sport": "Cricket",
             "Team_League": "ICC / IPL (India National Team)",
             "Athlete": "Virat Kohli",
-            "Position": "Top-Order Chase Master (No. 3)",
+            "Position": "Top-Order Batter (No. 3)",
             "Pace": 94,
             "Endurance": 98,
             "Agility": 95,
@@ -404,7 +393,7 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 96,
             "OVR": 96,
             "Jersey_Color": "#0EA5E9",
-            "Signature_Style": "Explosive 2-run conversion sprints, wrists-driven flicks & mental grit",
+            "Signature_Style": "Fast running between wickets & high-pressure chases",
         },
         {
             "Sport": "Cricket",
@@ -419,14 +408,14 @@ def get_pro_athletes_db() -> pd.DataFrame:
             "Recovery": 90,
             "OVR": 93,
             "Jersey_Color": "#14B8A6",
-            "Signature_Style": "145+ kph late-inswinging yorkers & high-release front-leg brace",
+            "Signature_Style": "145+ kph swinging yorkers & explosive bowling action",
         },
     ]
     return pd.DataFrame(athletes)
 
 
 def generate_28_day_seed_log() -> pd.DataFrame:
-    """Generates a realistic 28-day periodized multi-sport training dataset."""
+    """Generates 28 days of realistic training history so charts work immediately on launch."""
     rng = np.random.default_rng(42)
     today = datetime.now().date()
     sports_cycle = ["Badminton", "Football", "Basketball", "Cricket"]
@@ -494,115 +483,115 @@ def recompute_rolling_metrics(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ==============================================================================
-# 3. DOMAIN SCIENCE: READINESS, ACWR & ADAPTIVE SCHEDULE ENGINE
+# 3. SPORT WORKOUT SCHEDULES & READINESS / ACWR CALCULATOR
 # ==============================================================================
 SPORT_WEEKLY_ROUTINES: Dict[str, Dict[str, List[Dict[str, object]]]] = {
     "Badminton": {
-        "Monday: Shadow Footwork & Split-Step Mechanics": [
-            {"Drill": "6-Corner Explosive Shadow Footwork", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Court Coverage & Split-Step Timing"},
-            {"Drill": "Rear-Court Scissor Jump to Net Lunge", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Posterior-Anterior Transition"},
-            {"Drill": "Low Isometric Lunge Hold + Racket Tracking", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Patellar Tendon & Quad Isometric"},
+        "Monday: Shadow Footwork": [
+            {"Drill": "6-Corner Shadow Footwork", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Fast split-steps & court recovery"},
+            {"Drill": "Rear-Court Jump to Net Lunge", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Back-to-front court transition"},
+            {"Drill": "Low Lunge Hold & Racket Balance", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Knee stability & leg strength"},
         ],
-        "Tuesday: Linear & Multi-Directional Agility": [
-            {"Drill": "Forehand/Backhand Side-to-Side Defense Shuttles", "Base_Sets": 6, "Base_Rest_Sec": 50, "Focus": "Lateral Hip Abduction Drive"},
-            {"Drill": "Reactive Light/Audio Split-Step Sprint Matrix", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Visual-Motor Reaction Latency"},
-            {"Drill": "Plyometric Hurdle Hops + Deep Lunge Recovery", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Stretch-Shortening Cycle (SSC)"},
+        "Tuesday: Linear Footwork": [
+            {"Drill": "Side-to-Side Defense Shuttles", "Base_Sets": 6, "Base_Rest_Sec": 50, "Focus": "Quick lateral push-off"},
+            {"Drill": "Reactive Split-Step Sprints", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Reaction speed & first step"},
+            {"Drill": "Hurdle Hops to Deep Lunge", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Explosive landing control"},
         ],
-        "Wednesday: High-Velocity Court Drills": [
-            {"Drill": "Multi-Shuttle Rapid Net Kill & Lift Sequence", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Forearm Pronation & Net Dominance"},
-            {"Drill": "2-vs-1 Flat Drive & Half-Smash Counter Drill", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "High-Tempo Tactical Defense"},
-            {"Drill": "Deceptive Cross-Court Drop & Clear Precision", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Fine Motor Control Under Fatigue"},
+        "Wednesday: Court Drills": [
+            {"Drill": "Rapid Net Kill & Lift Multi-Shuttle", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Front-court wrist speed"},
+            {"Drill": "2-vs-1 Flat Drive & Smash Defense", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "Fast reflex blocks"},
+            {"Drill": "Cross-Court Drop & Clear Accuracy", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Shot placement under fatigue"},
         ],
-        "Thursday: Anaerobic Alactic Conditioning": [
-            {"Drill": "40s On / 20s Off Multi-Shuttle Survival Feed", "Base_Sets": 8, "Base_Rest_Sec": 40, "Focus": "Lactate Clearance & VO2 Peak"},
-            {"Drill": "Double-Jump Smash Repeatability Protocol", "Base_Sets": 5, "Base_Rest_Sec": 65, "Focus": "Alactic Power Maintenance"},
-            {"Drill": "Rotator Cuff Eccentric Deceleration Band Work", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Glenohumeral Joint Integrity"},
+        "Thursday: Conditioning": [
+            {"Drill": "40s Work / 20s Rest Multi-Shuttle Rally", "Base_Sets": 8, "Base_Rest_Sec": 40, "Focus": "Stamina & heart-rate recovery"},
+            {"Drill": "Repeat Jump-Smash Power Drill", "Base_Sets": 5, "Base_Rest_Sec": 65, "Focus": "Overhead power endurance"},
+            {"Drill": "Shoulder Resistance Band Care", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Shoulder joint protection"},
         ],
-        "Friday: Tactical Game Simulation": [
-            {"Drill": "21-Point Pressure Situation Match Play (14-14 Start)", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Clutch Decision Making"},
-            {"Drill": "Service-Return 3rd-Shot Attack Patterns", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "First-3-Shots Rally Control"},
-            {"Drill": "Post-Match Parasympathetic Breathwork & Foam Roll", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Vagal Tone Restoration"},
+        "Friday: Game Simulation": [
+            {"Drill": "Clutch 21-Point Match Play (Start 14-14)", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Winning tight end-game points"},
+            {"Drill": "Serve & 3rd-Shot Attack Patterns", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "Controlling the start of rallies"},
+            {"Drill": "Cool-Down Stretching & Foam Roll", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Full-body muscle relaxation"},
         ],
     },
     "Football": {
-        "Monday: Shadow Footwork & Positional Scanning": [
-            {"Drill": "180° Half-Turn Scanning & First-Touch Orientation", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Proprioceptive Spatial Awareness"},
-            {"Drill": "Close-Control Slalom Weave & Deceleration", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Eccentric Braking Mechanics"},
-            {"Drill": "Copenhagen Adductor & Nordic Hamstring Prep", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Posterior Chain Injury Shield"},
+        "Monday: Shadow Footwork": [
+            {"Drill": "Shoulder-Check Scanning & First Touch", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Awareness before receiving the ball"},
+            {"Drill": "Close-Control Cone Weave & Stop", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Sharp braking & ball control"},
+            {"Drill": "Hamstring & Groin Injury-Prevention Prep", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Protecting leg muscles"},
         ],
-        "Tuesday: Linear Footwork & Max-Velocity Sprints": [
-            {"Drill": "30m Fly Sprints with Curved Run-In", "Base_Sets": 6, "Base_Rest_Sec": 90, "Focus": "Top-End Horizontal Force"},
-            {"Drill": "5-10-5 Pro Agility Box Transition", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Change of Direction Deficit (CODD)"},
-            {"Drill": "1v1 Channel Recovery Defending Sprints", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Hip-Turn & Acceleration"},
+        "Tuesday: Linear Footwork": [
+            {"Drill": "30m Explosive Speed Sprints", "Base_Sets": 6, "Base_Rest_Sec": 90, "Focus": "Top sprinting speed"},
+            {"Drill": "5-10-5 Agility Shuttle Turn", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Sharp direction changes"},
+            {"Drill": "1v1 Recovery Defending Sprints", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Acceleration & hip turns"},
         ],
-        "Wednesday: Pitch Drills & Rondo Pressing": [
-            {"Drill": "6v3 High-Intensity Transition Rondo", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "One-Touch Cognitive Speed"},
-            {"Drill": "Overlap/Underlap Final-Third Cutback Finishing", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "High-Heart-Rate Composure"},
-            {"Drill": "Long-Diagonal Switch & Cushioned Volley Control", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Hip Mobility & Ball Striking"},
+        "Wednesday: Court Drills": [
+            {"Drill": "6v3 One-Touch Pressing Rondo", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Fast passing under pressure"},
+            {"Drill": "Wing Overlap & Cutback Finishing", "Base_Sets": 5, "Base_Rest_Sec": 60, "Focus": "Composed goal finishing"},
+            {"Drill": "Long Diagonal Pass & First-Touch Cushion", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Switching play cleanly"},
         ],
-        "Thursday: Metabolic Conditioning (RSA)": [
-            {"Drill": "Repeated Sprint Ability (6 x 40m Shuttle)", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Phosphocreatine Resynthesis"},
-            {"Drill": "Box-to-Box High-Speed Running Intervals (15s/15s)", "Base_Sets": 8, "Base_Rest_Sec": 30, "Focus": "Aerobic Power Ceiling"},
-            {"Drill": "Core Anti-Rotation Pallof Press & Plank Matrix", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Pelvic Stability in Duels"},
+        "Thursday: Conditioning": [
+            {"Drill": "Repeated Sprint Shuttles (6 x 40m)", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Late-match sprint stamina"},
+            {"Drill": "Box-to-Box High-Tempo Runs (15s On/15s Off)", "Base_Sets": 8, "Base_Rest_Sec": 30, "Focus": "Engine & lung capacity"},
+            {"Drill": "Core Stability Plank & Rotation Series", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Balance in physical duels"},
         ],
-        "Friday: Game Simulation & Tactical Phases": [
-            {"Drill": "11v11 Zonal High-Press vs Low-Block Phase Play", "Base_Sets": 4, "Base_Rest_Sec": 120, "Focus": "Collective Tactical Compactness"},
-            {"Drill": "Set-Piece Delivery & Near-Post Attacking Runs", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Dead-Ball Execution"},
-            {"Drill": "Lower-Limb Contrast Mobility & Hydro-Recovery", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Inflammatory Marker Clearance"},
+        "Friday: Game Simulation": [
+            {"Drill": "11v11 High-Press vs Low-Block Scrimmage", "Base_Sets": 4, "Base_Rest_Sec": 120, "Focus": "Team shape & tactical discipline"},
+            {"Drill": "Corner & Free-Kick Attacking Routines", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Set-piece execution"},
+            {"Drill": "Post-Match Mobility & Leg Flush", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Clearing muscle fatigue"},
         ],
     },
     "Basketball": {
-        "Monday: Shadow Footwork & Closeout Mechanics": [
-            {"Drill": "Defensive Slide-Drop-Contest Closeout Triangle", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Lateral Hip Stiffness & Balance"},
-            {"Drill": "Triple-Threat Jab-Step & Split-Footwork Series", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "First-Step Separation"},
-            {"Drill": "Ankle Eversion/Inversion Isometric Balance", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Lateral Ligament Protection"},
+        "Monday: Shadow Footwork": [
+            {"Drill": "Defensive Slide & Closeout Footwork", "Base_Sets": 6, "Base_Rest_Sec": 45, "Focus": "Staying in front of ball handlers"},
+            {"Drill": "Triple-Threat Jab-Step & Separation", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "Creating space for your shot"},
+            {"Drill": "Single-Leg Ankle Balance Holds", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Ankle stability & safety"},
         ],
-        "Tuesday: Linear Footwork & Transition Lanes": [
-            {"Drill": "Baseline-to-Baseline 3-Man Weave Euro-Step Finish", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Deceleration & Stride Length"},
-            {"Drill": "Lane Agility Cone Sprint & Backpedal Matrix", "Base_Sets": 5, "Base_Rest_Sec": 65, "Focus": "Multi-Planar Transition Speed"},
-            {"Drill": "Approach Vertical Jump & 2-Foot Landing Mechanics", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Impulse Absorption"},
+        "Tuesday: Linear Footwork": [
+            {"Drill": "Full-Court Fast-Break Euro-Step Finish", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Controlled finishing at top speed"},
+            {"Drill": "Key-to-Perimeter Agility Cone Sprints", "Base_Sets": 5, "Base_Rest_Sec": 65, "Focus": "Forward-to-backward speed"},
+            {"Drill": "Vertical Jump & Soft 2-Foot Landings", "Base_Sets": 4, "Base_Rest_Sec": 75, "Focus": "Explosive bounce & knee protection"},
         ],
-        "Wednesday: Court Drills & Pick-and-Roll Reads": [
-            {"Drill": "Spain Pick-and-Roll Pocket Pass / Pull-Up 3PT", "Base_Sets": 6, "Base_Rest_Sec": 55, "Focus": "2-Man Game Manipulation"},
-            {"Drill": "Off-Ball Pin-Down Relocations & Catch-and-Shoot", "Base_Sets": 6, "Base_Rest_Sec": 50, "Focus": "Shot Preparation Footwork"},
-            {"Drill": "Contested Finishing Through Contact Pad", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Mid-Air Core Bracing"},
+        "Wednesday: Court Drills": [
+            {"Drill": "Pick-and-Roll Pocket Pass or Pull-Up 3PT", "Base_Sets": 6, "Base_Rest_Sec": 55, "Focus": "Reading the defense"},
+            {"Drill": "Off-Screen Relocation Catch-and-Shoot", "Base_Sets": 6, "Base_Rest_Sec": 50, "Focus": "Quick shooting footwork"},
+            {"Drill": "Contact Layup Finishing Drill", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Scoring through physical contact"},
         ],
-        "Thursday: Hardwood Conditioning & Suicides": [
-            {"Drill": "17s Sideline-to-Sideline Conditioning Shuttles", "Base_Sets": 7, "Base_Rest_Sec": 45, "Focus": "Glycolytic Buffering Capacity"},
-            {"Drill": "Fatigued Free-Throw Pressure Protocol (Swish = -1 Set)", "Base_Sets": 5, "Base_Rest_Sec": 35, "Focus": "Autonomic Heart Rate Control"},
-            {"Drill": "Eccentric Single-Leg Squat on Decline Board", "Base_Sets": 4, "Base_Rest_Sec": 50, "Focus": "Jumper's Knee Prevention"},
+        "Thursday: Conditioning": [
+            {"Drill": "17-Second Sideline Conditioning Shuttles", "Base_Sets": 7, "Base_Rest_Sec": 45, "Focus": "4th-quarter stamina"},
+            {"Drill": "Tired-Legs Free-Throw Challenge", "Base_Sets": 5, "Base_Rest_Sec": 35, "Focus": "Calm shooting with high heart rate"},
+            {"Drill": "Slow Single-Leg Squat Lowering", "Base_Sets": 4, "Base_Rest_Sec": 50, "Focus": "Healthy patellar tendons"},
         ],
-        "Friday: 5v5 Half/Full-Court Game Simulation": [
-            {"Drill": "Late-Clock (8s Shot Clock) Half-Court Execution", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Crunch-Time Spacing"},
-            {"Drill": "Full-Court Press Break & Secondary Transition", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "Ball Security Under Trap"},
-            {"Drill": "Thoracic Spine & Hip Flexor Decompression Flow", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Postural Reset"},
+        "Friday: Game Simulation": [
+            {"Drill": "Late-Clock (8s Remaining) Half-Court Play", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Clutch shot creation"},
+            {"Drill": "Full-Court Press Break Scrimmage", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "Protecting the ball under pressure"},
+            {"Drill": "Hip & Upper-Back Stretching Flow", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Loosening tight muscles"},
         ],
     },
     "Cricket": {
-        "Monday: Shadow Footwork & Crease Alignment": [
-            {"Drill": "Front-Foot Stride & Back-Foot Trigger Movement Shadow", "Base_Sets": 6, "Base_Rest_Sec": 40, "Focus": "Head Stillness & Center of Mass"},
-            {"Drill": "Slip Cordon Reactive Low-Catch Footwork", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "Pre-Delivery Split-Step"},
-            {"Drill": "Thoracic Rotation & Scapular Retraction Mobility", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Bowling/Throwing Shoulder Health"},
+        "Monday: Shadow Footwork": [
+            {"Drill": "Front-Foot & Back-Foot Batting Trigger Shadow", "Base_Sets": 6, "Base_Rest_Sec": 40, "Focus": "Head stillness & balanced stance"},
+            {"Drill": "Slip Fielding Low-Catch Split-Steps", "Base_Sets": 5, "Base_Rest_Sec": 45, "Focus": "Sharp reflex catching"},
+            {"Drill": "Shoulder & Upper-Back Rotation Mobility", "Base_Sets": 4, "Base_Rest_Sec": 40, "Focus": "Smooth throwing & bowling arm"},
         ],
-        "Tuesday: Linear Footwork & 22-Yard Sprint Turning": [
-            {"Drill": "Explosive 2s & 3s Crease-Turning Shuttle With Bat", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Low Center-of-Gravity Braking"},
-            {"Drill": "Bowler Run-Up Rhythm & Bound Alignment", "Base_Sets": 6, "Base_Rest_Sec": 70, "Focus": "Front-Foot Block Impulse"},
-            {"Drill": "In-Field Swoop, Pick-Up & Off-Balance Direct Hit", "Base_Sets": 5, "Base_Rest_Sec": 55, "Focus": "Rotational Core Transfer"},
+        "Tuesday: Linear Footwork": [
+            {"Drill": "Quick 2-Run Turning Sprints With Bat", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Fast crease turns & acceleration"},
+            {"Drill": "Bowler Run-Up Rhythm & Gather Stride", "Base_Sets": 6, "Base_Rest_Sec": 70, "Focus": "Consistent front-foot landing"},
+            {"Drill": "In-Field Pick-Up & Direct-Hit Throws", "Base_Sets": 5, "Base_Rest_Sec": 55, "Focus": "Balanced throwing on the move"},
         ],
-        "Wednesday: Pitch / Net Drills & Ball-Striking": [
-            {"Drill": "140+ kph Sidearm Short-Pitched Pull & Duck Session", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Visual Tracking & Weight Transfer"},
-            {"Drill": "Spin Sweep / Advance Down-the-Track Footwork Matrix", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Pitch Reading & Wrist Work"},
-            {"Drill": "Death-Overs Yorker & Slower-Ball Spot Bowling", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "Release Point Consistency"},
+        "Wednesday: Court Drills": [
+            {"Drill": "Fast Short-Ball Pull & Leave Net Session", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Picking length early"},
+            {"Drill": "Spin Footwork: Sweep & Step Down the Pitch", "Base_Sets": 5, "Base_Rest_Sec": 50, "Focus": "Rotating strike against spin"},
+            {"Drill": "Death-Overs Yorker Target Bowling", "Base_Sets": 5, "Base_Rest_Sec": 75, "Focus": "Hitting the blockhole under pressure"},
         ],
-        "Thursday: Spell Endurance & Heat Conditioning": [
-            {"Drill": "6-Over Simulated Fast Bowling Spell / 100-Ball Batting", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Neuromuscular Fatigue Resistance"},
-            {"Drill": "Boundary Rope Sliding Stop & Relay Throw Sprints", "Base_Sets": 5, "Base_Rest_Sec": 55, "Focus": "Repeat High-Intensity Efforts"},
-            {"Drill": "Lumbar Multifidus & Oblique Isometric Stabilization", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "L4-L5 Pars Stress Protection"},
+        "Thursday: Conditioning": [
+            {"Drill": "Simulated 6-Over Bowling / 100-Ball Batting", "Base_Sets": 6, "Base_Rest_Sec": 60, "Focus": "Long-spell concentration & stamina"},
+            {"Drill": "Boundary Dive Stop & Relay Sprints", "Base_Sets": 5, "Base_Rest_Sec": 55, "Focus": "Repeat sprinting in the field"},
+            {"Drill": "Lower-Back & Core Stability Holds", "Base_Sets": 4, "Base_Rest_Sec": 45, "Focus": "Protecting the lower spine"},
         ],
-        "Friday: Match Scenario Simulation": [
-            {"Drill": "Powerplay / Death-Overs Required-Run-Rate Chase (12 RPO)", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Gap Manipulation Under Pressure"},
-            {"Drill": "Fielding Captaincy Ring-Setting vs 360° Hitter", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Tactical Matchup Execution"},
-            {"Drill": "Posterior Shoulder & Hamstring PNF Stretching", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Myofascial Length Restoration"},
+        "Friday: Game Simulation": [
+            {"Drill": "Powerplay / Death-Overs Run-Chase Scenario", "Base_Sets": 5, "Base_Rest_Sec": 90, "Focus": "Finding boundaries under pressure"},
+            {"Drill": "Tactical Field-Setting vs 360° Batter", "Base_Sets": 4, "Base_Rest_Sec": 60, "Focus": "Smart match-up strategy"},
+            {"Drill": "Hamstring & Shoulder Cool-Down Stretch", "Base_Sets": 3, "Base_Rest_Sec": 30, "Focus": "Post-match recovery"},
         ],
     },
 }
@@ -615,7 +604,7 @@ def compute_readiness_and_acwr(
     df_log: pd.DataFrame,
     planned_workload_today: int,
 ) -> Dict[str, object]:
-    """Calculates Daily Readiness Index (0-100%), live ACWR, and adaptive scaling multipliers."""
+    """Calculates Daily Readiness (0-100%), live ACWR, and workout scaling in plain English."""
     sleep_score = min(100.0, (sleep_hours / 8.5) * 100.0)
     soreness_score = ((10.0 - float(soreness)) / 9.0) * 100.0
     energy_score = ((float(energy) - 1.0) / 9.0) * 100.0
@@ -638,45 +627,54 @@ def compute_readiness_and_acwr(
     readiness_index = round(float(np.clip(raw_readiness - acwr_penalty, 5.0, 100.0)), 1)
 
     if acwr < 0.80:
-        acwr_zone = "Under-Training (<0.8)"
-        acwr_badge = "badge-info"
+        acwr_zone = "Light Load (<0.8)"
+        acwr_pill = "pill-blue"
+        acwr_explain = "Your recent training is lighter than your 4-week average."
     elif acwr <= 1.30:
         acwr_zone = "Sweet Spot (0.8–1.3)"
-        acwr_badge = "badge-optimal"
+        acwr_pill = "pill-green"
+        acwr_explain = "Optimal balance! Fitness is building safely with low injury risk."
     elif acwr <= 1.50:
-        acwr_zone = "Caution Overreach (1.3–1.5)"
-        acwr_badge = "badge-caution"
+        acwr_zone = "High Load (1.3–1.5)"
+        acwr_pill = "pill-yellow"
+        acwr_explain = "Training load is climbing fast—watch for extra fatigue."
     else:
         acwr_zone = "Danger Spike (>1.5)"
-        acwr_badge = "badge-danger"
+        acwr_pill = "pill-red"
+        acwr_explain = "Warning: Weekly load jumped too high. Extra rest recommended."
 
     if readiness_index >= 80 and acwr <= 1.30:
         set_multiplier = 1.15
         rest_multiplier = 0.90
-        intensity_tag = "PEAK OVERLOAD (90–95% Max Velocity)"
-        readiness_badge = "badge-optimal"
-        readiness_status = "CNS Prime / Green Light"
+        intensity_tag = "High Intensity (Push Day 🔥)"
+        readiness_pill = "pill-green"
+        readiness_status = "Ready to Push"
+        readiness_color = "#10B981"
     elif readiness_index >= 62 and acwr <= 1.45:
         set_multiplier = 1.00
         rest_multiplier = 1.00
-        intensity_tag = "MAINTENANCE TEMPO (80–85% Sub-Max)"
-        readiness_badge = "badge-info"
-        readiness_status = "Controlled Adaptation"
+        intensity_tag = "Normal Pace (Balanced ✅)"
+        readiness_pill = "pill-blue"
+        readiness_status = "Good to Train"
+        readiness_color = "#06B6D4"
     elif readiness_index >= 45 and acwr <= 1.55:
         set_multiplier = 0.72
         rest_multiplier = 1.30
-        intensity_tag = "AUTOREGULATED DELOAD (65–75% Technical)"
-        readiness_badge = "badge-caution"
-        readiness_status = "Autonomic Fatigue Detected"
+        intensity_tag = "Lighter Pace (Recovery Focus ⚠️)"
+        readiness_pill = "pill-yellow"
+        readiness_status = "Moderate Fatigue"
+        readiness_color = "#F59E0B"
     else:
         set_multiplier = 0.50
         rest_multiplier = 1.60
-        intensity_tag = "NEUROMUSCULAR TAPER (50% Mobility & Flush)"
-        readiness_badge = "badge-danger"
-        readiness_status = "Red Alert / High Injury Risk"
+        intensity_tag = "Easy Active Recovery (Rest & Protect 🛑)"
+        readiness_pill = "pill-red"
+        readiness_status = "Needs Recovery"
+        readiness_color = "#EF4444"
 
     return {
         "readiness_index": readiness_index,
+        "readiness_color": readiness_color,
         "sleep_score": round(sleep_score, 1),
         "soreness_score": round(soreness_score, 1),
         "energy_score": round(energy_score, 1),
@@ -684,11 +682,12 @@ def compute_readiness_and_acwr(
         "chronic_28d": round(chronic_28d, 1),
         "acwr": acwr,
         "acwr_zone": acwr_zone,
-        "acwr_badge": acwr_badge,
+        "acwr_pill": acwr_pill,
+        "acwr_explain": acwr_explain,
         "set_multiplier": set_multiplier,
         "rest_multiplier": rest_multiplier,
         "intensity_tag": intensity_tag,
-        "readiness_badge": readiness_badge,
+        "readiness_pill": readiness_pill,
         "readiness_status": readiness_status,
     }
 
@@ -699,7 +698,7 @@ def build_adaptive_schedule(
     metrics: Dict[str, object],
     muscle_focus: str,
 ) -> pd.DataFrame:
-    """Rescales sets, rest intervals, and intensity based on daily physiological telemetry."""
+    """Adjusts sets and rest times automatically based on today's readiness."""
     base_drills = SPORT_WEEKLY_ROUTINES[sport][day_key]
     scaled_rows = []
 
@@ -709,27 +708,27 @@ def build_adaptive_schedule(
         adj_sets = max(2, int(round(base_sets * float(metrics["set_multiplier"]))))
         adj_rest = int(round((base_rest * float(metrics["rest_multiplier"])) / 5.0) * 5)
         delta_sets = adj_sets - base_sets
-        delta_str = f"+{delta_sets}" if delta_sets > 0 else str(delta_sets)
+        delta_str = f"+{delta_sets} bonus" if delta_sets > 0 else (f"{delta_sets} reduced" if delta_sets < 0 else "standard")
 
         scaled_rows.append(
             {
                 "Drill_Name": item["Drill"],
-                "Baseline_Sets": base_sets,
-                "Adaptive_Sets": adj_sets,
-                "Set_Delta": delta_str,
-                "Adaptive_Rest_Sec": f"{adj_rest}s",
-                "Target_Intensity": metrics["intensity_tag"],
-                "Biomechanical_Focus": f"{item['Focus']} (Protect: {muscle_focus})",
+                "Standard_Sets": base_sets,
+                "Recommended_Sets": adj_sets,
+                "Adjustment": delta_str,
+                "Rest_Between_Sets": f"{adj_rest} sec",
+                "Pace": metrics["intensity_tag"],
+                "Coaching_Focus": f"{item['Focus']} (Care for: {muscle_focus})",
             }
         )
     return pd.DataFrame(scaled_rows)
 
 
 # ==============================================================================
-# 4. DUAL-KEY LLM AI COACH ORCHESTRATION (GROQ + OPENROUTER + HEURISTIC)
+# 4. HIDDEN DUAL-KEY AI COACH ENGINE (GROQ OPENAI / LLAMA + OPENROUTER)
 # ==============================================================================
 def get_secret_api_key(key_name: str) -> str:
-    """Safely retrieves API keys from environment variables or st.secrets without raising errors."""
+    """Silently loads API keys from environment variables or Streamlit secrets."""
     env_val = os.environ.get(key_name, "").strip()
     if env_val:
         return env_val
@@ -752,49 +751,48 @@ def generate_heuristic_coaching_prescription(
     total_base_sets: int,
     total_adj_sets: int,
 ) -> str:
-    """Deterministic 3-sentence sports science fallback when offline or without an API key."""
+    """Friendly, clear 3-sentence coaching advice when no API key is entered."""
     readiness = metrics["readiness_index"]
     acwr = metrics["acwr"]
-    pct_change = int(round(((total_adj_sets - total_base_sets) / max(1, total_base_sets)) * 100))
-    direction = (
-        f"scaled up by +{pct_change}%"
-        if pct_change > 0
-        else (f"reduced by {abs(pct_change)}%" if pct_change < 0 else "maintained at baseline volume")
-    )
+
+    if total_adj_sets > total_base_sets:
+        change_phrase = f"boosted from {total_base_sets} to {total_adj_sets} sets because your readiness is strong ({readiness}%)"
+    elif total_adj_sets < total_base_sets:
+        change_phrase = f"lightened from {total_base_sets} to {total_adj_sets} sets to protect your body ({readiness}% readiness)"
+    else:
+        change_phrase = f"kept steady at {total_adj_sets} sets ({readiness}% readiness)"
 
     sentence_1 = (
-        f"With a Daily Readiness Index of {readiness}% ({sleep_hours}h sleep, {soreness}/10 soreness in the {muscle_focus}, {energy}/10 CNS drive) "
-        f"and an ACWR of {acwr} ({metrics['acwr_zone']}), today's {sport} workload ({day_key.split(':')[0]}) has been {direction} "
-        f"from {total_base_sets} to {total_adj_sets} total working sets."
+        f"Based on your {sleep_hours} hours of sleep, {energy}/10 energy, and {acwr} workload ratio ({metrics['acwr_zone']}), "
+        f"today's {sport} workout ({day_key}) has been {change_phrase}."
     )
 
     if readiness < 60 or acwr > 1.35:
         sentence_2 = (
-            f"Extending inter-set rest intervals by {int(round((float(metrics['rest_multiplier']) - 1.0) * 100))}% prevents excessive eccentric strain on the {muscle_focus} "
-            f"and buffers central nervous system fatigue while preserving clean sub-maximal movement kinematics inspired by {athlete_name}."
+            f"We added extra rest time between sets so you can practice smooth, controlled technique like {athlete_name} "
+            f"without overloading your {muscle_focus}."
         )
     else:
         sentence_2 = (
-            f"Your optimal acute-to-chronic load balance permits high-velocity neural recruitment, allowing you to mirror {athlete_name}'s "
-            f"explosive kinetic chain efficiency without exceeding tissue tolerance thresholds in the {muscle_focus}."
+            f"Your body is fresh and in the safe training zone, so focus on crisp footwork and explosive speed inspired by {athlete_name}."
         )
 
     recovery_map = {
-        "Quads / Hamstrings": "10 minutes of 90/90 hamstring flossing, low-cadence spin flush at <110 bpm, and eccentric Nordic sliders",
-        "Calves / Achilles": "bent-knee soleus isometric holds (4x45s), plantar fascia Lacrosse ball release, and ankle dorsiflexion mobilizations",
-        "Lower Back / Core": "supine diaphragmatic 90/90 decompression breathing, McGill Big-3 core activation, and thoracic cat-cow extensions",
-        "Shoulders / Rotator Cuff": "sleeper-stretch posterior capsule mobilization, light theraband external rotations, and scapular wall slides",
-        "Knees / Patella": "Spanish squat isometric holds (4x30s at 70° flexion), VMO foam rolling, and terminal knee extensions",
-        "Full Body Systemic": "12 minutes of parasympathetic box breathing (4-4-6-2 cadence), contrast hydrotherapy, and full-chain myofascial rolling",
+        "Quads / Hamstrings": "10 minutes of gentle hamstring stretching, foam rolling, and easy leg swings",
+        "Calves / Achilles": "slow calf stretches, ankle mobility circles, and a 5-minute foot massage with a ball",
+        "Lower Back / Core": "deep belly breathing on your back, gentle cat-cow spine stretches, and light core activation",
+        "Shoulders / Rotator Cuff": "light resistance-band shoulder rotations, chest openers, and gentle arm circles",
+        "Knees / Patella": "3 sets of 30-second wall-sit holds, quad foam rolling, and gentle knee bends",
+        "Full Body Systemic": "10 minutes of slow deep breathing, full-body stretching, and plenty of hydration",
     }
     drill_rec = recovery_map.get(muscle_focus, recovery_map["Full Body Systemic"])
-    sentence_3 = f"Conclude today's session with {drill_rec} to accelerate parasympathetic vagal recovery prior to tomorrow's microcycle block."
+    sentence_3 = f"Finish your session with {drill_rec} to help your {muscle_focus} recover for tomorrow."
 
     return f"{sentence_1} {sentence_2} {sentence_3}"
 
 
 def _call_groq(api_key: str, model_name: str, system_prompt: str, user_prompt: str) -> str:
-    """Calls Groq API via official SDK or REST endpoint if SDK is missing."""
+    """Calls Groq API supporting both OpenAI GPT-OSS models and Llama models."""
     if GROQ_SDK_AVAILABLE:
         client = Groq(api_key=api_key)
         completion = client.chat.completions.create(
@@ -857,10 +855,7 @@ def query_ai_coach(
     total_base_sets: int,
     total_adj_sets: int,
 ) -> Tuple[str, str]:
-    """
-    Supports both Groq and OpenRouter keys simultaneously, single-key operation,
-    or offline fallback depending on user preference.
-    """
+    """Routes to Groq (OpenAI/Llama), OpenRouter, or the built-in Smart Coach engine."""
     fallback_text = generate_heuristic_coaching_prescription(
         sport, athlete_name, day_key, sleep_hours, soreness, muscle_focus, energy, metrics, total_base_sets, total_adj_sets
     )
@@ -868,60 +863,57 @@ def query_ai_coach(
     groq_clean = groq_key.strip()
     or_clean = openrouter_key.strip()
 
-    if routing_mode == "Force Offline Heuristic Engine" or (not groq_clean and not or_clean):
-        return fallback_text, "Sports Science Heuristic Engine (Offline / No Key)"
+    if routing_mode == "Offline Smart Coach (No API Key Needed)" or (not groq_clean and not or_clean):
+        return fallback_text, "Built-in Sports Science Coach"
 
     system_prompt = (
-        "You are an elite PhD Sports Scientist and Head of Athletic Performance. "
-        "Write EXACTLY 3 concise, high-impact sentences of tactical and physiological instruction for the athlete. "
-        "Sentence 1: Justify why today's total sets and rest intervals were adjusted based on their Readiness Index and ACWR. "
-        "Sentence 2: Provide a biomechanical execution cue for today's sport routine referencing the pro athlete benchmark. "
-        "Sentence 3: Prescribe a specific active recovery protocol targeting their sore muscle group."
+        "You are a friendly, encouraging elite Sports Science Coach. "
+        "Write EXACTLY 3 clear, easy-to-understand sentences for the athlete. "
+        "Sentence 1: Explain why today's sets and rest times were adjusted based on their Readiness Score and ACWR. "
+        "Sentence 2: Give one practical movement tip for today's workout inspired by the pro athlete. "
+        "Sentence 3: Recommend a simple active recovery stretch or drill for their sore muscle area."
     )
 
     user_prompt = (
-        f"Sport: {sport} | Pro Benchmark: {athlete_name} | Session Focus: {day_key}\n"
-        f"Physiology: Sleep={sleep_hours}h, Soreness={soreness}/10 ({muscle_focus}), Energy={energy}/10\n"
-        f"Telemetry: Readiness={metrics['readiness_index']}%, ACWR={metrics['acwr']} ({metrics['acwr_zone']}), "
-        f"Sets Adjusted={total_base_sets} -> {total_adj_sets}, Intensity={metrics['intensity_tag']}."
+        f"Sport: {sport} | Pro Role Model: {athlete_name} | Today's Focus: {day_key}\n"
+        f"Check-in: Sleep={sleep_hours}h, Soreness={soreness}/10 ({muscle_focus}), Energy={energy}/10\n"
+        f"Stats: Readiness={metrics['readiness_index']}%, ACWR={metrics['acwr']} ({metrics['acwr_zone']}), "
+        f"Sets Adjusted={total_base_sets} -> {total_adj_sets}, Pace={metrics['intensity_tag']}."
     )
 
-    # Build ordered provider queue based on user's routing choice and available keys
     attempt_queue: List[Tuple[str, str, str]] = []
-    if routing_mode == "Auto-Detect (Groq ➔ OpenRouter ➔ Heuristic)":
+    if routing_mode == "Auto-Detect (Uses Whichever Key You Paste)":
         if groq_clean:
             attempt_queue.append(("Groq", groq_clean, groq_model))
         if or_clean:
             attempt_queue.append(("OpenRouter", or_clean, openrouter_model))
-    elif routing_mode == "Use Groq API (Failover to OpenRouter if set)":
+    elif routing_mode == "Prefer Groq API":
         if groq_clean:
             attempt_queue.append(("Groq", groq_clean, groq_model))
         if or_clean:
             attempt_queue.append(("OpenRouter", or_clean, openrouter_model))
-    elif routing_mode == "Use OpenRouter API (Failover to Groq if set)":
+    elif routing_mode == "Prefer OpenRouter API":
         if or_clean:
             attempt_queue.append(("OpenRouter", or_clean, openrouter_model))
         if groq_clean:
             attempt_queue.append(("Groq", groq_clean, groq_model))
 
-    last_error = ""
     for provider_label, key_val, model_val in attempt_queue:
         try:
             if provider_label == "Groq":
                 text_out = _call_groq(key_val, model_val, system_prompt, user_prompt)
-                return text_out, f"Groq Live LLM ({model_val})"
+                return text_out, f"Groq AI ({model_val})"
             else:
                 text_out = _call_openrouter(key_val, model_val, system_prompt, user_prompt)
-                return text_out, f"OpenRouter Live LLM ({model_val})"
-        except Exception as exc:
-            last_error = f"{provider_label}: {type(exc).__name__}"
+                return text_out, f"OpenRouter AI ({model_val})"
+        except Exception:
             continue
 
-    return fallback_text, f"Heuristic Fallback ({last_error or 'No Valid Key for Selected Mode'})"
+    return fallback_text, "Built-in Sports Science Coach (Fallback)"
 
 
 # ==============================================================================
-# 5. INTERACTIVE 3D WEBGL BIOMECHANICAL AVATAR (PLOTLY SCATTER3D + MESH3D)
+# 5. INTERACTIVE 3D MOUSE-ROTATABLE AVATAR (PLOTLY WEBGL)
 # ==============================================================================
 def build_3d_biomechanical_avatar(
     athlete_row: pd.Series,
@@ -929,10 +921,7 @@ def build_3d_biomechanical_avatar(
     soreness_level: int,
     readiness_index: float,
 ) -> go.Figure:
-    """
-    Constructs a 360-degree mouse-rotatable 3D WebGL athletic wireframe & volumetric core avatar.
-    Syncs with the athlete's jersey color and highlights fatigued anatomical regions.
-    """
+    """Renders a 360-degree rotatable 3D athlete avatar synced to jersey colors and sore muscles."""
     theme_hex = str(athlete_row["Jersey_Color"])
     strain_hex = "#EF4444" if soreness_level >= 7 else ("#F59E0B" if soreness_level >= 4 else "#22D3EE")
 
@@ -1021,7 +1010,7 @@ def build_3d_biomechanical_avatar(
             alphahull=0,
             opacity=0.22,
             color=theme_hex,
-            name="Biomechanical Core Mesh",
+            name="Core Body Volume",
             hoverinfo="skip",
         )
     )
@@ -1053,7 +1042,7 @@ def build_3d_biomechanical_avatar(
             z=norm_z,
             mode="lines",
             line=dict(color=theme_hex, width=7),
-            name=f"{athlete_row['Athlete']} Kinetic Frame",
+            name=f"{athlete_row['Athlete']} Stance",
             hoverinfo="skip",
         )
     )
@@ -1066,7 +1055,7 @@ def build_3d_biomechanical_avatar(
                 z=sore_z,
                 mode="lines",
                 line=dict(color=strain_hex, width=10),
-                name=f"Strain Focus: {muscle_focus} ({soreness_level}/10)",
+                name=f"Sore Area: {muscle_focus}",
                 hoverinfo="skip",
             )
         )
@@ -1082,7 +1071,7 @@ def build_3d_biomechanical_avatar(
             z=hz,
             mode="lines",
             line=dict(color="#22D3EE", width=4),
-            name="Cranial Telemetry Halo",
+            name="Head Tracking Halo",
             hoverinfo="skip",
         )
     )
@@ -1093,7 +1082,7 @@ def build_3d_biomechanical_avatar(
         jy.append(y)
         jz.append(z)
         clean_name = name.replace("_", " ")
-        j_names.append(f"<b>Joint Node:</b> {clean_name}<br><b>Elevation:</b> {z:.0f} cm<br><b>Readiness:</b> {readiness_index}%")
+        j_names.append(f"<b>Joint:</b> {clean_name}<br><b>Height:</b> {z:.0f} cm<br><b>Readiness:</b> {readiness_index}%")
 
         highlight = False
         if muscle_focus == "Knees / Patella" and "Knee" in name:
@@ -1130,7 +1119,7 @@ def build_3d_biomechanical_avatar(
             ),
             text=j_names,
             hovertemplate="%{text}<extra></extra>",
-            name="Biomechanical Joint Sensors",
+            name="Joint Nodes",
         )
     )
 
@@ -1146,7 +1135,7 @@ def build_3d_biomechanical_avatar(
                 mode="lines",
                 line=dict(color=theme_hex, width=3 if radius == 42.0 else 2),
                 opacity=opacity_val,
-                name="Force Plate Ring" if radius == 42.0 else "Inner Balance Ring",
+                name="Floor Balance Ring" if radius == 42.0 else "Inner Ring",
                 hoverinfo="skip",
                 showlegend=(radius == 42.0),
             )
@@ -1156,8 +1145,8 @@ def build_3d_biomechanical_avatar(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=30, b=0),
-        height=560,
+        margin=dict(l=0, r=0, t=20, b=0),
+        height=520,
         showlegend=True,
         legend=dict(
             orientation="h",
@@ -1170,37 +1159,10 @@ def build_3d_biomechanical_avatar(
         ),
         scene=dict(
             dragmode="turntable",
-            xaxis=dict(
-                title="",
-                range=[-65, 65],
-                showgrid=True,
-                gridcolor="rgba(255,255,255,0.06)",
-                zeroline=False,
-                showticklabels=False,
-                showbackground=False,
-            ),
-            yaxis=dict(
-                title="",
-                range=[-65, 65],
-                showgrid=True,
-                gridcolor="rgba(255,255,255,0.06)",
-                zeroline=False,
-                showticklabels=False,
-                showbackground=False,
-            ),
-            zaxis=dict(
-                title="Height (cm)",
-                range=[0, 195],
-                showgrid=True,
-                gridcolor="rgba(6, 182, 212, 0.12)",
-                zeroline=False,
-                showbackground=True,
-                backgroundcolor="rgba(11, 15, 25, 0.45)",
-            ),
-            camera=dict(
-                eye=dict(x=1.45, y=1.55, z=0.65),
-                center=dict(x=0, y=0, z=-0.05),
-            ),
+            xaxis=dict(title="", range=[-65, 65], showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, showticklabels=False, showbackground=False),
+            yaxis=dict(title="", range=[-65, 65], showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, showticklabels=False, showbackground=False),
+            zaxis=dict(title="Height (cm)", range=[0, 195], showgrid=True, gridcolor="rgba(6, 182, 212, 0.12)", zeroline=False, showbackground=True, backgroundcolor="rgba(11, 15, 25, 0.45)"),
+            camera=dict(eye=dict(x=1.45, y=1.55, z=0.65), center=dict(x=0, y=0, z=-0.05)),
             aspectmode="manual",
             aspectratio=dict(x=1.0, y=1.0, z=1.45),
         ),
@@ -1209,19 +1171,19 @@ def build_3d_biomechanical_avatar(
 
 
 # ==============================================================================
-# 6. ANALYTICS & TELEMETRY CHARTS (TAB 2 & TAB 3)
+# 6. ANALYTICS & PROGRESS CHARTS
 # ==============================================================================
 def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
-    """Dual-axis Plotly chart plotting 28-day Acute vs Chronic load and ACWR safety bands."""
+    """Dual-axis chart plotting 28-day Acute vs Chronic load and the Safe Sweet Spot."""
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
         go.Bar(
             x=df["Date"],
             y=df["Daily_Workload"],
-            name="Daily Workload (AU)",
-            marker=dict(color="rgba(6, 182, 212, 0.28)", line=dict(color="rgba(6, 182, 212, 0.65)", width=1)),
-            hovertemplate="<b>%{x|%b %d}</b><br>Daily Load: %{y} AU<extra></extra>",
+            name="Daily Effort Score",
+            marker=dict(color="rgba(6, 182, 212, 0.25)", line=dict(color="rgba(6, 182, 212, 0.6)", width=1)),
+            hovertemplate="<b>%{x|%b %d}</b><br>Daily Effort: %{y}<extra></extra>",
         ),
         secondary_y=False,
     )
@@ -1231,10 +1193,9 @@ def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
             x=df["Date"],
             y=df["Acute_Load_7D"],
             mode="lines+markers",
-            name="7-Day Acute Load",
+            name="7-Day Fatigue (Acute)",
             line=dict(color="#10B981", width=3),
             marker=dict(size=6),
-            hovertemplate="Acute Load (7d): %{y:.0f} AU<extra></extra>",
         ),
         secondary_y=False,
     )
@@ -1244,9 +1205,8 @@ def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
             x=df["Date"],
             y=df["Chronic_Load_28D"],
             mode="lines",
-            name="28-Day Chronic Baseline",
+            name="28-Day Fitness Base (Chronic)",
             line=dict(color="#9CA3AF", width=2.5, dash="dash"),
-            hovertemplate="Chronic Load (28d): %{y:.0f} AU<extra></extra>",
         ),
         secondary_y=False,
     )
@@ -1256,10 +1216,9 @@ def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
             x=df["Date"],
             y=df["ACWR"],
             mode="lines+markers",
-            name="ACWR Ratio",
+            name="Injury Risk Ratio (ACWR)",
             line=dict(color="#F59E0B", width=3),
             marker=dict(size=7, symbol="diamond", color="#FBBF24"),
-            hovertemplate="<b>ACWR:</b> %{y:.2f}<extra></extra>",
         ),
         secondary_y=True,
     )
@@ -1269,18 +1228,18 @@ def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
         y1=1.30,
         line_width=0,
         fillcolor="rgba(16, 185, 129, 0.11)",
-        annotation_text="Optimal Sweet Spot (0.8–1.3)",
+        annotation_text="Safe Sweet Spot (0.8–1.3)",
         annotation_position="top left",
-        annotation_font=dict(size=10, color="#34D399"),
+        annotation_font=dict(size=11, color="#34D399"),
         secondary_y=True,
     )
     fig.add_hline(
         y=1.50,
         line_dash="dot",
         line_color="#EF4444",
-        annotation_text="Danger Spike Threshold (1.50)",
+        annotation_text="High Injury Risk (>1.50)",
         annotation_position="bottom right",
-        annotation_font=dict(size=10, color="#F87171"),
+        annotation_font=dict(size=11, color="#F87171"),
         secondary_y=True,
     )
 
@@ -1288,18 +1247,18 @@ def build_acwr_progression_chart(df: pd.DataFrame) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(17, 24, 39, 0.45)",
-        height=400,
+        height=390,
         margin=dict(l=15, r=15, t=35, b=15),
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
     )
-    fig.update_yaxes(title_text="Training Load (Arbitrary Units)", secondary_y=False, gridcolor="rgba(255,255,255,0.06)")
+    fig.update_yaxes(title_text="Training Load", secondary_y=False, gridcolor="rgba(255,255,255,0.06)")
     fig.update_yaxes(title_text="ACWR Ratio", range=[0.4, 2.0], secondary_y=True, showgrid=False)
     return fig
 
 
 def build_volume_completion_chart(df: pd.DataFrame) -> go.Figure:
-    """Grouped bar chart comparing Planned Sets vs Completed Sets over the past 7 sessions."""
+    """Bar chart comparing Planned Sets vs Completed Sets over the past 7 sessions."""
     last_7 = df.tail(7).copy()
     last_7["Date_Label"] = last_7["Date"].dt.strftime("%b %d")
     last_7["Compliance_Pct"] = ((last_7["Completed_Sets"] / last_7["Planned_Sets"].replace(0, 1)) * 100).round(0)
@@ -1331,17 +1290,17 @@ def build_volume_completion_chart(df: pd.DataFrame) -> go.Figure:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(17, 24, 39, 0.45)",
         barmode="group",
-        height=360,
+        height=350,
         margin=dict(l=15, r=15, t=35, b=15),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-        yaxis=dict(title="Working Sets", gridcolor="rgba(255,255,255,0.06)"),
-        xaxis=dict(title="Last 7 Logged Sessions"),
+        yaxis=dict(title="Sets", gridcolor="rgba(255,255,255,0.06)"),
+        xaxis=dict(title="Last 7 Workouts"),
     )
     return fig
 
 
 def build_readiness_vs_fatigue_scatter(df: pd.DataFrame) -> go.Figure:
-    """Scatter plot with numpy linear regression trendline correlating Sleep, Soreness, and Readiness."""
+    """Scatter plot showing how more sleep and lower soreness improve readiness."""
     fig = go.Figure()
 
     fig.add_trace(
@@ -1349,7 +1308,7 @@ def build_readiness_vs_fatigue_scatter(df: pd.DataFrame) -> go.Figure:
             x=df["Sleep_Hours"],
             y=df["Readiness_Score"],
             mode="markers",
-            name="Session Telemetry",
+            name="Past Workouts",
             marker=dict(
                 size=np.clip(df["Daily_Workload"] / 35.0, 9, 24),
                 color=df["Soreness"],
@@ -1364,8 +1323,7 @@ def build_readiness_vs_fatigue_scatter(df: pd.DataFrame) -> go.Figure:
                 "<b>%{customdata[2]} (%{text})</b><br>"
                 "Sleep: %{x} hrs<br>"
                 "Readiness: %{y}%<br>"
-                "Soreness: %{customdata[0]}/10<br>"
-                "Workload: %{customdata[1]} AU<extra></extra>"
+                "Soreness: %{customdata[0]}/10<extra></extra>"
             ),
         )
     )
@@ -1382,7 +1340,7 @@ def build_readiness_vs_fatigue_scatter(df: pd.DataFrame) -> go.Figure:
                 x=x_line,
                 y=y_line,
                 mode="lines",
-                name=f"OLS Recovery Trend (+{slope:.1f}% / hr)",
+                name=f"Sleep Trend (+{slope:.1f}% Readiness per hr)",
                 line=dict(color="#06B6D4", width=2.5, dash="dash"),
                 hoverinfo="skip",
             )
@@ -1392,11 +1350,11 @@ def build_readiness_vs_fatigue_scatter(df: pd.DataFrame) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(17, 24, 39, 0.45)",
-        height=360,
+        height=350,
         margin=dict(l=15, r=15, t=35, b=15),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-        xaxis=dict(title="Sleep Duration (Hours)", gridcolor="rgba(255,255,255,0.06)"),
-        yaxis=dict(title="Daily Readiness Score (%)", gridcolor="rgba(255,255,255,0.06)"),
+        xaxis=dict(title="Hours Slept", gridcolor="rgba(255,255,255,0.06)"),
+        yaxis=dict(title="Readiness Score (%)", gridcolor="rgba(255,255,255,0.06)"),
     )
     return fig
 
@@ -1406,7 +1364,7 @@ def build_dual_radar_chart(
     compare_user: bool,
     user_traits: Dict[str, int],
 ) -> go.Figure:
-    """Builds a 6-axis Spider/Radar chart comparing the Pro Athlete vs User Benchmarks."""
+    """6-trait Spider/Radar chart comparing the Pro Athlete vs User stats."""
     categories = ["Pace", "Endurance", "Agility", "Power", "Tactical IQ", "Recovery"]
     pro_vals = [
         int(athlete_row["Pace"]),
@@ -1446,7 +1404,7 @@ def build_dual_radar_chart(
                 fillcolor="rgba(6, 182, 212, 0.24)",
                 line=dict(color="#06B6D4", width=3, dash="dot"),
                 marker=dict(size=7, color="#22D3EE"),
-                name=f"User Benchmark (OVR {u_ovr})",
+                name=f"Your Stats (OVR {u_ovr})",
             )
         )
 
@@ -1454,20 +1412,12 @@ def build_dual_radar_chart(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        height=450,
-        margin=dict(l=40, r=40, t=35, b=35),
+        height=440,
+        margin=dict(l=40, r=40, t=30, b=30),
         polar=dict(
             bgcolor="rgba(17, 24, 39, 0.65)",
-            radialaxis=dict(
-                visible=True,
-                range=[40, 100],
-                gridcolor="rgba(255, 255, 255, 0.10)",
-                tickfont=dict(size=10, color="#9CA3AF"),
-            ),
-            angularaxis=dict(
-                gridcolor="rgba(255, 255, 255, 0.12)",
-                tickfont=dict(size=12, color="#F9FAFB"),
-            ),
+            radialaxis=dict(visible=True, range=[40, 100], gridcolor="rgba(255, 255, 255, 0.10)"),
+            angularaxis=dict(gridcolor="rgba(255, 255, 255, 0.12)", tickfont=dict(size=12, color="#F9FAFB")),
         ),
         legend=dict(orientation="h", yanchor="bottom", y=-0.12, xanchor="center", x=0.5),
     )
@@ -1475,7 +1425,353 @@ def build_dual_radar_chart(
 
 
 # ==============================================================================
-# 7. MAIN STREAMLIT APPLICATION ENTRYPOINT
+# 7. MODULAR PAGE RENDERERS (FOR CLEAN SIDEBAR NAVIGATION OR TABS)
+# ==============================================================================
+def render_daily_training_view(
+    selected_sport: str,
+    selected_day_routine: str,
+    telemetry: Dict[str, object],
+    muscle_focus: str,
+    routing_mode: str,
+    groq_api_key: str,
+    groq_model: str,
+    openrouter_api_key: str,
+    openrouter_model: str,
+    active_athlete: pd.Series,
+    sleep_hours: float,
+    soreness_level: int,
+    energy_level: int,
+    planned_duration: int,
+    planned_rpe: int,
+) -> Tuple[int, int]:
+    """Renders the friendly Daily Workout & AI Coach page."""
+    schedule_df = build_adaptive_schedule(
+        sport=selected_sport,
+        day_key=selected_day_routine,
+        metrics=telemetry,
+        muscle_focus=muscle_focus,
+    )
+    total_base_sets = int(schedule_df["Standard_Sets"].sum())
+    total_adj_sets = int(schedule_df["Recommended_Sets"].sum())
+
+    coach_text, engine_badge = query_ai_coach(
+        routing_mode=routing_mode,
+        groq_key=groq_api_key,
+        groq_model=groq_model,
+        openrouter_key=openrouter_api_key,
+        openrouter_model=openrouter_model,
+        sport=selected_sport,
+        athlete_name=str(active_athlete["Athlete"]),
+        day_key=selected_day_routine,
+        sleep_hours=sleep_hours,
+        soreness=soreness_level,
+        muscle_focus=muscle_focus,
+        energy=energy_level,
+        metrics=telemetry,
+        total_base_sets=total_base_sets,
+        total_adj_sets=total_adj_sets,
+    )
+
+    st.markdown(
+        f"""
+        <div class="coach-box">
+            <div class="coach-title">
+                <span>🤖 Personal AI Coach Advice</span>
+                <span class="pill pill-green">{engine_badge}</span>
+            </div>
+            <div class="coach-message">{coach_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    col_left, col_right = st.columns([1.75, 1.0], gap="large")
+
+    with col_left:
+        st.markdown(f"### 📋 Today's Workout Plan — `{selected_day_routine}`")
+        for idx, row in schedule_df.iterrows():
+            st.markdown(
+                f"""
+                <div class="workout-step">
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.02rem; color: #FFFFFF;">
+                            {idx + 1}. {row['Drill_Name']}
+                        </div>
+                        <div style="font-size: 0.84rem; color: #9CA3AF; margin-top: 3px;">
+                            🎯 {row['Coaching_Focus']}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="pill pill-green">{row['Recommended_Sets']} Sets ({row['Adjustment']})</span>
+                        <span class="pill pill-blue" style="margin-left: 6px;">Rest: {row['Rest_Between_Sets']}</span>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with st.expander("📊 View Detailed Schedule Table", expanded=False):
+            st.dataframe(schedule_df, use_container_width=True, hide_index=True)
+
+    with col_right:
+        st.markdown("### ⚡ Quick Actions & Breakdown")
+        st.markdown(
+            f"""
+            <div class="friendly-card">
+                <div class="card-label">Why Your Workout Was Adjusted</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin: 0.35rem 0;">
+                    {total_base_sets} Standard Sets ➔ <span style="color: #10B981;">{total_adj_sets} Today's Sets</span>
+                </div>
+                <div style="font-size: 0.86rem; color: #D1D5DB; line-height: 1.65; margin-top: 0.5rem;">
+                    • <b>Recommended Pace:</b> {telemetry['intensity_tag']}<br>
+                    • <b>Sleep Recovery Score:</b> {telemetry['sleep_score']}%<br>
+                    • <b>Muscle Freshness:</b> {telemetry['soreness_score']}% ({muscle_focus})<br>
+                    • <b>Energy Level:</b> {telemetry['energy_score']}%
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("✅ Complete & Log Today's Workout in 1-Click", use_container_width=True, type="primary"):
+            new_entry = pd.DataFrame(
+                [
+                    {
+                        "Date": pd.to_datetime(datetime.now().date()),
+                        "Sport": selected_sport,
+                        "Duration_Min": int(planned_duration),
+                        "RPE": int(planned_rpe),
+                        "Daily_Workload": int(planned_duration * planned_rpe),
+                        "Sleep_Hours": float(sleep_hours),
+                        "Soreness": int(soreness_level),
+                        "Energy": int(energy_level),
+                        "Readiness_Score": float(telemetry["readiness_index"]),
+                        "Planned_Sets": int(total_adj_sets),
+                        "Completed_Sets": int(total_adj_sets),
+                    }
+                ]
+            )
+            updated_df = pd.concat([st.session_state.training_log, new_entry], ignore_index=True)
+            st.session_state.training_log = recompute_rolling_metrics(updated_df)
+            st.success("🎉 Awesome job! Today's workout has been saved to your Progress Charts.")
+
+        with st.expander(f"📅 See Full 5-Day {selected_sport} Weekly Plan", expanded=False):
+            for d_name, d_list in SPORT_WEEKLY_ROUTINES[selected_sport].items():
+                drills_joined = ", ".join([str(d["Drill"]) for d in d_list])
+                st.markdown(f"**{d_name}**  \n<span style='color:#9CA3AF;font-size:0.84rem;'>{drills_joined}</span>", unsafe_allow_html=True)
+
+    return total_base_sets, total_adj_sets
+
+
+def render_progress_charts_view(
+    df_log: pd.DataFrame,
+    sports_list: List[str],
+    selected_sport: str,
+    planned_duration: int,
+    planned_rpe: int,
+    total_adj_sets: int,
+    sleep_hours: float,
+    soreness_level: int,
+    energy_level: int,
+    telemetry: Dict[str, object],
+) -> None:
+    """Renders the 28-day performance charts and custom session logger."""
+    st.markdown("### 📊 28-Day Training Load & Injury Safety Zone (ACWR)")
+    st.caption("Keep the yellow diamond line inside the green shaded Sweet Spot (0.8–1.3) to build fitness safely.")
+    st.plotly_chart(build_acwr_progression_chart(df_log), use_container_width=True)
+
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        st.markdown("#### 🏋️ Sets Planned vs. Completed (Last 7 Workouts)")
+        st.plotly_chart(build_volume_completion_chart(df_log), use_container_width=True)
+    with c2:
+        st.markdown("#### 🛌 How Sleep Affects Your Daily Readiness")
+        st.plotly_chart(build_readiness_vs_fatigue_scatter(df_log), use_container_width=True)
+
+    st.markdown("---")
+    form_col, table_col = st.columns([1.05, 1.65], gap="large")
+
+    with form_col:
+        st.markdown("#### 📝 Log a Custom Workout Session")
+        with st.form("custom_log_form", clear_on_submit=False):
+            log_date_input = st.date_input("Date", value=datetime.now().date())
+            log_sport_input = st.selectbox("Sport", sports_list, index=sports_list.index(selected_sport))
+            f1, f2 = st.columns(2)
+            with f1:
+                log_duration = st.number_input("Minutes Trained", min_value=15, max_value=240, value=int(planned_duration), step=5)
+                log_planned_sets = st.number_input("Planned Sets", min_value=1, max_value=40, value=int(total_adj_sets))
+            with f2:
+                log_rpe = st.number_input("Effort (1=Easy, 10=Max)", min_value=1, max_value=10, value=int(planned_rpe))
+                log_completed_sets = st.number_input("Completed Sets", min_value=1, max_value=40, value=int(total_adj_sets))
+
+            if st.form_submit_button("💾 Save Workout to History", use_container_width=True):
+                new_entry = pd.DataFrame(
+                    [
+                        {
+                            "Date": pd.to_datetime(log_date_input),
+                            "Sport": log_sport_input,
+                            "Duration_Min": int(log_duration),
+                            "RPE": int(log_rpe),
+                            "Daily_Workload": int(log_duration * log_rpe),
+                            "Sleep_Hours": float(sleep_hours),
+                            "Soreness": int(soreness_level),
+                            "Energy": int(energy_level),
+                            "Readiness_Score": float(telemetry["readiness_index"]),
+                            "Planned_Sets": int(log_planned_sets),
+                            "Completed_Sets": int(log_completed_sets),
+                        }
+                    ]
+                )
+                updated_df = pd.concat([st.session_state.training_log, new_entry], ignore_index=True)
+                st.session_state.training_log = recompute_rolling_metrics(updated_df)
+                st.success("Workout logged! All charts have been updated.")
+                st.rerun()
+
+    with table_col:
+        st.markdown("#### 🗄️ Recent Workout History (Latest 10 Sessions)")
+        display_df = st.session_state.training_log.tail(10).sort_values("Date", ascending=False).copy()
+        display_df["Date"] = display_df["Date"].dt.strftime("%Y-%m-%d")
+        st.dataframe(
+            display_df[
+                [
+                    "Date",
+                    "Sport",
+                    "Duration_Min",
+                    "RPE",
+                    "Daily_Workload",
+                    "Readiness_Score",
+                    "Planned_Sets",
+                    "Completed_Sets",
+                    "ACWR",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+def render_pro_scouting_view(
+    athletes_df: pd.DataFrame,
+    sports_list: List[str],
+    selected_sport: str,
+    df_log: pd.DataFrame,
+    telemetry: Dict[str, object],
+    muscle_focus: str,
+    soreness_level: int,
+) -> None:
+    """Renders the Pro Scouting dropdowns, 3D rotatable avatar, and dual radar chart."""
+    st.markdown("### 🌟 Compare Yourself with World-Class Pro Athletes")
+    f_col1, f_col2, f_col3, f_col4 = st.columns([1.1, 1.3, 1.3, 1.1])
+
+    with f_col1:
+        scout_sport = st.selectbox("1. Choose Sport", sports_list, index=sports_list.index(selected_sport), key="scout_sport")
+    scout_sport_df = athletes_df[athletes_df["Sport"] == scout_sport]
+
+    with f_col2:
+        scout_leagues = scout_sport_df["Team_League"].unique().tolist()
+        scout_league = st.selectbox("2. Choose League / Team", ["All Leagues"] + scout_leagues, index=0, key="scout_league")
+    if scout_league != "All Leagues":
+        scout_athlete_df = scout_sport_df[scout_sport_df["Team_League"] == scout_league]
+    else:
+        scout_athlete_df = scout_sport_df
+
+    with f_col3:
+        scout_athlete_name = st.selectbox("3. Choose Pro Athlete", scout_athlete_df["Athlete"].tolist(), index=0, key="scout_athlete")
+    scout_row = scout_athlete_df[scout_athlete_df["Athlete"] == scout_athlete_name].iloc[0]
+
+    with f_col4:
+        st.markdown("<div style='height: 26px;'></div>", unsafe_allow_html=True)
+        compare_user_toggle = st.toggle("Overlay My Stats", value=True)
+
+    default_compliance_bonus = int(
+        round((df_log["Completed_Sets"].tail(7).sum() / max(1, df_log["Planned_Sets"].tail(7).sum())) * 10)
+    )
+    user_traits = {
+        "Pace": min(99, 74 + default_compliance_bonus),
+        "Endurance": min(99, int(round(telemetry["readiness_index"] * 0.45 + 42))),
+        "Agility": min(99, 76 + default_compliance_bonus),
+        "Power": min(99, 72 + default_compliance_bonus),
+        "Tactical IQ": 82,
+        "Recovery": min(99, int(round(telemetry["readiness_index"] * 0.55 + 35))),
+    }
+
+    if compare_user_toggle:
+        with st.expander("🎚️ Adjust Your Personal Player Ratings (40–99)", expanded=False):
+            u1, u2, u3, u4, u5, u6 = st.columns(6)
+            user_traits["Pace"] = u1.slider("Pace", 40, 99, user_traits["Pace"])
+            user_traits["Endurance"] = u2.slider("Endurance", 40, 99, user_traits["Endurance"])
+            user_traits["Agility"] = u3.slider("Agility", 40, 99, user_traits["Agility"])
+            user_traits["Power"] = u4.slider("Power", 40, 99, user_traits["Power"])
+            user_traits["Tactical IQ"] = u5.slider("Tactical IQ", 40, 99, user_traits["Tactical IQ"])
+            user_traits["Recovery"] = u6.slider("Recovery", 40, 99, user_traits["Recovery"])
+
+    avatar_col, radar_col = st.columns([1.15, 1.0], gap="large")
+
+    with avatar_col:
+        st.markdown(
+            f"#### 🧍 Interactive 3D Athlete Model — `{scout_row['Athlete']}` "
+            f"<span class='pill pill-blue' style='margin-left:8px;'>Click & Drag to Rotate 360°</span>",
+            unsafe_allow_html=True,
+        )
+        st.plotly_chart(
+            build_3d_biomechanical_avatar(
+                athlete_row=scout_row,
+                muscle_focus=muscle_focus,
+                soreness_level=soreness_level,
+                readiness_index=float(telemetry["readiness_index"]),
+            ),
+            use_container_width=True,
+        )
+
+    with radar_col:
+        st.markdown(f"#### 🕸️ 6-Trait Skill Radar — `{scout_row['Athlete']}`")
+        st.plotly_chart(
+            build_dual_radar_chart(
+                athlete_row=scout_row,
+                compare_user=compare_user_toggle,
+                user_traits=user_traits,
+            ),
+            use_container_width=True,
+        )
+
+        trait_keys = ["Pace", "Endurance", "Agility", "Power", "Tactical_IQ", "Recovery"]
+        pro_vec = np.array([float(scout_row[k]) for k in trait_keys])
+        user_vec = np.array(
+            [
+                float(user_traits["Pace"]),
+                float(user_traits["Endurance"]),
+                float(user_traits["Agility"]),
+                float(user_traits["Power"]),
+                float(user_traits["Tactical IQ"]),
+                float(user_traits["Recovery"]),
+            ]
+        )
+        similarity_pct = round(float(100.0 - np.mean(np.abs(pro_vec - user_vec))), 1)
+
+        st.markdown(
+            f"""
+            <div class="friendly-card" style="border-left: 5px solid {scout_row['Jersey_Color']};">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div class="card-label">{scout_row['Sport']} · {scout_row['Team_League']}</div>
+                        <div style="font-size: 1.3rem; font-weight: 800; color: #FFFFFF;">
+                            {scout_row['Athlete']} <span style="color:{scout_row['Jersey_Color']};">({scout_row['OVR']} OVR)</span>
+                        </div>
+                    </div>
+                    <span class="pill pill-green">Playstyle Match: {similarity_pct}%</span>
+                </div>
+                <div style="font-size: 0.86rem; color: #D1D5DB; margin-top: 0.5rem;">
+                    <b>Position:</b> {scout_row['Position']}<br>
+                    <b>Signature Style:</b> {scout_row['Signature_Style']}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# ==============================================================================
+# 8. MAIN APPLICATION ENTRYPOINT
 # ==============================================================================
 def main() -> None:
     if "athletes_df" not in st.session_state:
@@ -1486,41 +1782,50 @@ def main() -> None:
 
     athletes_df: pd.DataFrame = st.session_state.athletes_df
     df_log: pd.DataFrame = st.session_state.training_log
+    sports_list = athletes_df["Sport"].unique().tolist()
 
     # --------------------------------------------------------------------------
-    # SIDEBAR: BIOMETRICS, SCOUTING SELECTOR & DUAL-KEY LLM CONFIGURATION
+    # CLEAN, USER-FRIENDLY SIDEBAR WITH NAVIGATION MENU & HIDDEN API KEYS
     # --------------------------------------------------------------------------
     with st.sidebar:
-        st.markdown("## ⚡ AERO-KINETIX LAB")
-        st.caption("Biomechanical Telemetry & AI Conditioning")
-        st.markdown("---")
+        st.markdown("## ⚡ AERO-KINETIX AI")
+        st.caption("Smart Conditioning & Pro Scouting")
 
-        st.markdown("### 🏆 Active Sport & Pro Benchmark")
-        sports_list = athletes_df["Sport"].unique().tolist()
-        selected_sport = st.selectbox("Select Primary Sport", sports_list, index=0)
-
-        sport_subset = athletes_df[athletes_df["Sport"] == selected_sport]
-        leagues_list = sport_subset["Team_League"].unique().tolist()
-        selected_league = st.selectbox("Team / League Filter", ["All Leagues"] + leagues_list, index=0)
-
-        if selected_league != "All Leagues":
-            athlete_subset = sport_subset[sport_subset["Team_League"] == selected_league]
-        else:
-            athlete_subset = sport_subset
-
-        selected_athlete_name = st.selectbox(
-            "Pro Athlete Telemetry Profile",
-            athlete_subset["Athlete"].tolist(),
+        # 1. SIDEBAR NAVIGATION MENU
+        st.markdown("### 🧭 Menu")
+        nav_selection = st.radio(
+            "Navigate to:",
+            [
+                "🏋️ Today's Workout & AI Coach",
+                "📈 Progress & History Charts",
+                "🌟 Pro Scouting & 3D Avatar",
+                "🗂️ All-in-One Tabbed View",
+            ],
             index=0,
+            label_visibility="collapsed",
         )
-        active_athlete = athlete_subset[athlete_subset["Athlete"] == selected_athlete_name].iloc[0]
 
         st.markdown("---")
-        st.markdown("### 🧬 Daily Physiological Inputs")
-        sleep_hours = st.slider("Hours Slept (Last Night)", min_value=3.5, max_value=11.0, value=7.8, step=0.1)
-        soreness_level = st.slider("Muscle Soreness (1 = Fresh, 10 = Severe)", min_value=1, max_value=10, value=3)
+
+        # 2. SPORT & ATHLETE SELECTION
+        st.markdown("### 🏆 Your Sport & Role Model")
+        selected_sport = st.selectbox("Sport", sports_list, index=0)
+        sport_subset = athletes_df[athletes_df["Sport"] == selected_sport]
+        selected_athlete_name = st.selectbox("Pro Inspiration", sport_subset["Athlete"].tolist(), index=0)
+        active_athlete = sport_subset[sport_subset["Athlete"] == selected_athlete_name].iloc[0]
+
+        day_options = list(SPORT_WEEKLY_ROUTINES[selected_sport].keys())
+        selected_day_routine = st.selectbox("Workout Day", day_options, index=0)
+
+        st.markdown("---")
+
+        # 3. SIMPLE DAILY BODY CHECK-IN (3 EASY SLIDERS)
+        st.markdown("### ❤️ Daily Body Check-In")
+        sleep_hours = st.slider("🛌 Hours Slept Last Night", min_value=4.0, max_value=11.0, value=7.8, step=0.5)
+        energy_level = st.slider("⚡ Energy & Motivation (1–10)", min_value=1, max_value=10, value=8)
+        soreness_level = st.slider("🩹 Muscle Soreness (1=Fresh, 10=Sore)", min_value=1, max_value=10, value=3)
         muscle_focus = st.selectbox(
-            "Primary Muscle Soreness Focus",
+            "Area Feeling Most Sore",
             [
                 "Quads / Hamstrings",
                 "Calves / Achilles",
@@ -1531,62 +1836,70 @@ def main() -> None:
             ],
             index=0,
         )
-        energy_level = st.slider("CNS Energy & Motivation (1–10)", min_value=1, max_value=10, value=8)
 
-        st.markdown("---")
-        st.markdown("### 📅 Microcycle Session Load")
-        day_options = list(SPORT_WEEKLY_ROUTINES[selected_sport].keys())
-        selected_day_routine = st.selectbox("Weekly Training Schedule Day", day_options, index=0)
-        planned_duration = st.slider("Planned Duration (Minutes)", min_value=30, max_value=150, value=80, step=5)
-        planned_rpe = st.slider("Target Session RPE (1–10)", min_value=1, max_value=10, value=7)
+        # 4. OPTIONAL WORKOUT DURATION / EFFORT (COLLAPSED FOR SIMPLICITY)
+        with st.expander("⏱️ Adjust Workout Duration & Effort", expanded=False):
+            planned_duration = st.slider("Duration (Minutes)", min_value=30, max_value=150, value=75, step=5)
+            planned_rpe = st.slider("Target Effort RPE (1–10)", min_value=1, max_value=10, value=7)
         planned_workload_today = planned_duration * planned_rpe
 
-        st.markdown("---")
-        st.markdown("### 🤖 Dual-Key AI Coach Engine")
-        st.caption("Paste both keys, only one key, or leave both empty for offline heuristics.")
+        # 5. HIDDEN API KEY VAULT (COLLAPSED & MASKED BY DEFAULT)
+        with st.expander("🔐 AI Model & API Keys (Hidden)", expanded=False):
+            st.caption("Keys are masked & hidden. Paste Groq, OpenRouter, both, or leave empty for Offline Coach.")
+            routing_mode = st.selectbox(
+                "AI Connection Mode",
+                [
+                    "Auto-Detect (Uses Whichever Key You Paste)",
+                    "Prefer Groq API",
+                    "Prefer OpenRouter API",
+                    "Offline Smart Coach (No API Key Needed)",
+                ],
+                index=0,
+            )
 
-        routing_mode = st.selectbox(
-            "Active Routing Mode",
-            [
-                "Auto-Detect (Groq ➔ OpenRouter ➔ Heuristic)",
-                "Use Groq API (Failover to OpenRouter if set)",
-                "Use OpenRouter API (Failover to Groq if set)",
-                "Force Offline Heuristic Engine",
-            ],
-            index=0,
-        )
+            groq_api_key = st.text_input(
+                "Groq API Key (Hidden)",
+                value=get_secret_api_key("GROQ_API_KEY"),
+                type="password",
+                placeholder="gsk_...",
+            )
+            groq_model = st.selectbox(
+                "Groq Model (Includes OpenAI & Llama)",
+                [
+                    "openai/gpt-oss-120b",
+                    "openai/gpt-oss-20b",
+                    "llama-3.3-70b-versatile",
+                    "llama-3.1-8b-instant",
+                    "llama3-8b-8192",
+                ],
+                index=0,
+            )
 
-        groq_api_key = st.text_input(
-            "1. Groq API Key (gsk_...)",
-            value=get_secret_api_key("GROQ_API_KEY"),
-            type="password",
-            help="Paste your Groq key here, or leave blank if using OpenRouter or Offline mode.",
-        )
-        groq_model = st.selectbox(
-            "Groq Model",
-            ["llama-3.3-70b-versatile", "llama3-8b-8192"],
-            index=0,
-        )
+            openrouter_api_key = st.text_input(
+                "OpenRouter API Key (Hidden)",
+                value=get_secret_api_key("OPENROUTER_API_KEY"),
+                type="password",
+                placeholder="sk-or-...",
+            )
+            openrouter_model = st.selectbox(
+                "OpenRouter Model",
+                [
+                    "openai/gpt-oss-120b",
+                    "openai/gpt-oss-20b",
+                    "meta-llama/llama-3.3-70b-instruct",
+                    "meta-llama/llama-3.1-8b-instruct",
+                ],
+                index=0,
+            )
 
-        openrouter_api_key = st.text_input(
-            "2. OpenRouter API Key (sk-or-...)",
-            value=get_secret_api_key("OPENROUTER_API_KEY"),
-            type="password",
-            help="Paste your OpenRouter key here, or leave blank if using Groq or Offline mode.",
-        )
-        openrouter_model = st.selectbox(
-            "OpenRouter Model",
-            ["meta-llama/llama-3.3-70b-instruct", "meta-llama/llama-3.1-8b-instruct"],
-            index=0,
-        )
+            g_stat = "🟢 Key Saved" if groq_api_key.strip() else "⚪ Not Set"
+            or_stat = "🟢 Key Saved" if openrouter_api_key.strip() else "⚪ Not Set"
+            st.caption(f"Status — Groq: {g_stat} | OpenRouter: {or_stat}")
 
-        # Live Key Status Pill in Sidebar
-        g_ready = "✅ Ready" if groq_api_key.strip() else "⚪ Empty"
-        or_ready = "✅ Ready" if openrouter_api_key.strip() else "⚪ Empty"
-        st.caption(f"**Key Status:** Groq: {g_ready} | OpenRouter: {or_ready}")
-
+    # Inject CSS synced to the active pro athlete's jersey color
     inject_custom_css(str(active_athlete["Jersey_Color"]))
 
+    # Calculate Readiness & ACWR
     telemetry = compute_readiness_and_acwr(
         sleep_hours=sleep_hours,
         soreness=soreness_level,
@@ -1596,21 +1909,21 @@ def main() -> None:
     )
 
     # --------------------------------------------------------------------------
-    # TOP HERO BANNER
+    # FRIENDLY TOP WELCOME HEADER
     # --------------------------------------------------------------------------
     st.markdown(
         f"""
-        <div class="hero-banner">
+        <div class="welcome-banner">
             <div>
-                <h1 class="hero-title">⚡ AERO-KINETIX AI PERFORMANCE LAB</h1>
-                <div class="hero-subtitle">
-                    Active Protocol: <b>{selected_sport}</b> &nbsp;|&nbsp; Pro Archetype: <b>{active_athlete['Athlete']}</b> ({active_athlete['Position']})
-                    &nbsp;|&nbsp; Soreness Telemetry: <b>{muscle_focus} ({soreness_level}/10)</b>
+                <h1 class="welcome-title">⚡ {selected_sport} Conditioning & Scouting Hub</h1>
+                <div class="welcome-sub">
+                    Role Model: <b>{active_athlete['Athlete']}</b> ({active_athlete['Position']}) &nbsp;•&nbsp;
+                    Protecting: <b>{muscle_focus}</b>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <span class="status-badge {telemetry['readiness_badge']}">{telemetry['readiness_status']}</span>
-                <span class="status-badge {telemetry['acwr_badge']}" style="margin-left: 6px;">ACWR: {telemetry['acwr']} ({telemetry['acwr_zone']})</span>
+            <div>
+                <span class="pill {telemetry['readiness_pill']}">{telemetry['readiness_status']} ({telemetry['readiness_index']}%)</span>
+                <span class="pill {telemetry['acwr_pill']}" style="margin-left: 8px;">{telemetry['acwr_zone']}</span>
             </div>
         </div>
         """,
@@ -1618,355 +1931,153 @@ def main() -> None:
     )
 
     # --------------------------------------------------------------------------
-    # TOP 4 TELEMETRY KPI CARDS
+    # 3 EASY-TO-READ SUMMARY CARDS AT TOP
     # --------------------------------------------------------------------------
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-    with kpi1:
+    c1, c2, c3 = st.columns(3)
+    with c1:
         st.markdown(
             f"""
-            <div class="glass-card">
-                <div class="metric-label">Daily Readiness Index</div>
-                <div class="metric-value" style="color: #10B981;">{telemetry['readiness_index']}%</div>
-                <div class="metric-sub">Sleep {telemetry['sleep_score']}% · Muscle {telemetry['soreness_score']}% · CNS {telemetry['energy_score']}%</div>
+            <div class="friendly-card">
+                <div class="card-label">1. YOUR DAILY READINESS</div>
+                <div class="card-big-value" style="color: {telemetry['readiness_color']};">
+                    {telemetry['readiness_index']}% — {telemetry['readiness_status']}
+                </div>
+                <div class="progress-track">
+                    <div style="width: {telemetry['readiness_index']}%; height: 100%; background: {telemetry['readiness_color']};"></div>
+                </div>
+                <div class="card-helper">Based on {sleep_hours}h sleep, {energy_level}/10 energy & {soreness_level}/10 soreness.</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with kpi2:
+    with c2:
         st.markdown(
             f"""
-            <div class="glass-card">
-                <div class="metric-label">Real-Time ACWR Ratio</div>
-                <div class="metric-value" style="color: #06B6D4;">{telemetry['acwr']:.2f}</div>
-                <div class="metric-sub">Acute 7D: {telemetry['acute_7d']:.0f} AU vs Chronic 28D: {telemetry['chronic_28d']:.0f} AU</div>
+            <div class="friendly-card">
+                <div class="card-label">2. INJURY RISK & WORKLOAD (ACWR)</div>
+                <div class="card-big-value" style="color: #06B6D4;">
+                    {telemetry['acwr']:.2f} — {telemetry['acwr_zone']}
+                </div>
+                <div class="card-helper">{telemetry['acwr_explain']}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with kpi3:
+    with c3:
         mult_pct = int(round(float(telemetry["set_multiplier"]) * 100))
         st.markdown(
             f"""
-            <div class="glass-card">
-                <div class="metric-label">Autoregulated Set Scaling</div>
-                <div class="metric-value" style="color: #FBBF24;">{mult_pct}% Volume</div>
-                <div class="metric-sub">Rest Multiplier: {telemetry['rest_multiplier']:.2f}x · Planned: {planned_workload_today} AU</div>
+            <div class="friendly-card">
+                <div class="card-label">3. TODAY'S WORKOUT PACE</div>
+                <div class="card-big-value" style="color: #FBBF24;">
+                    {mult_pct}% Volume
+                </div>
+                <div class="card-helper">{telemetry['intensity_tag']}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with kpi4:
-        st.markdown(
-            f"""
-            <div class="glass-card">
-                <div class="metric-label">Pro Archetype OVR Rating</div>
-                <div class="metric-value" style="color: {active_athlete['Jersey_Color']};">{active_athlete['OVR']} OVR</div>
-                <div class="metric-sub">{active_athlete['Athlete']} · {active_athlete['Team_League']}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+
+    # Compute default adjusted sets for session logging
+    temp_sched = build_adaptive_schedule(selected_sport, selected_day_routine, telemetry, muscle_focus)
+    default_adj_sets = int(temp_sched["Recommended_Sets"].sum())
 
     # --------------------------------------------------------------------------
-    # 3-TAB NAVIGATION ARCHITECTURE
+    # RENDER SELECTED VIEW FROM SIDEBAR MENU
     # --------------------------------------------------------------------------
-    tab1, tab2, tab3 = st.tabs(
-        [
-            "🏋️ Daily Adaptive Training & Coach",
-            "📈 Performance Trends & History Graphs",
-            "🌟 Pro Scouting & 3D Avatar Studio",
-        ]
-    )
-
-    # ==========================================================================
-    # TAB 1: DAILY ADAPTIVE TRAINING & AI COACH
-    # ==========================================================================
-    with tab1:
-        schedule_df = build_adaptive_schedule(
-            sport=selected_sport,
-            day_key=selected_day_routine,
-            metrics=telemetry,
-            muscle_focus=muscle_focus,
-        )
-        total_base_sets = int(schedule_df["Baseline_Sets"].sum())
-        total_adj_sets = int(schedule_df["Adaptive_Sets"].sum())
-
-        coach_text, engine_badge = query_ai_coach(
-            routing_mode=routing_mode,
-            groq_key=groq_api_key,
-            groq_model=groq_model,
-            openrouter_key=openrouter_api_key,
-            openrouter_model=openrouter_model,
-            sport=selected_sport,
-            athlete_name=str(active_athlete["Athlete"]),
-            day_key=selected_day_routine,
-            sleep_hours=sleep_hours,
-            soreness=soreness_level,
-            muscle_focus=muscle_focus,
-            energy=energy_level,
-            metrics=telemetry,
-            total_base_sets=total_base_sets,
-            total_adj_sets=total_adj_sets,
+    if nav_selection == "🏋️ Today's Workout & AI Coach":
+        render_daily_training_view(
+            selected_sport,
+            selected_day_routine,
+            telemetry,
+            muscle_focus,
+            routing_mode,
+            groq_api_key,
+            groq_model,
+            openrouter_api_key,
+            openrouter_model,
+            active_athlete,
+            sleep_hours,
+            soreness_level,
+            energy_level,
+            planned_duration,
+            planned_rpe,
         )
 
-        st.markdown(
-            f"""
-            <div class="coach-terminal">
-                <div class="coach-header">🧠 AI Tactical & Physiological Prescription &nbsp;|&nbsp; Source: {engine_badge}</div>
-                <div class="coach-body">{coach_text}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    elif nav_selection == "📈 Progress & History Charts":
+        render_progress_charts_view(
+            df_log,
+            sports_list,
+            selected_sport,
+            planned_duration,
+            planned_rpe,
+            default_adj_sets,
+            sleep_hours,
+            soreness_level,
+            energy_level,
+            telemetry,
         )
 
-        col_sched, col_summary = st.columns([1.85, 1.0], gap="large")
-
-        with col_sched:
-            st.markdown(f"#### 📋 Adaptive Microcycle Prescription — `{selected_day_routine}`")
-            for _, row in schedule_df.iterrows():
-                st.markdown(
-                    f"""
-                    <div class="drill-card">
-                        <div>
-                            <div style="font-weight: 700; font-size: 0.98rem; color: #F9FAFB;">{row['Drill_Name']}</div>
-                            <div style="font-size: 0.80rem; color: #9CA3AF; margin-top: 2px;">
-                                🎯 {row['Biomechanical_Focus']} &nbsp;|&nbsp; ⚡ {row['Target_Intensity']}
-                            </div>
-                        </div>
-                        <div style="text-align: right; font-family: 'JetBrains Mono', monospace;">
-                            <span class="status-badge badge-optimal">{row['Adaptive_Sets']} Sets ({row['Set_Delta']})</span>
-                            <span class="status-badge badge-info" style="margin-left: 6px;">Rest: {row['Adaptive_Rest_Sec']}</span>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-            st.dataframe(
-                schedule_df,
-                use_container_width=True,
-                hide_index=True,
-            )
-
-        with col_summary:
-            st.markdown("#### ⚖️ Autoregulation Breakdown")
-            st.markdown(
-                f"""
-                <div class="glass-card">
-                    <div class="metric-label">Session Volume Rescaling</div>
-                    <div style="font-size: 1.35rem; font-weight: 700; color: #F9FAFB; margin: 0.3rem 0;">
-                        {total_base_sets} Baseline Sets ➔ <span style="color: #10B981;">{total_adj_sets} Adaptive Sets</span>
-                    </div>
-                    <p style="font-size: 0.85rem; color: #9CA3AF; margin-bottom: 0.6rem;">
-                        Target Intensity Band: <b style="color: #22D3EE;">{telemetry['intensity_tag']}</b>
-                    </p>
-                    <hr style="border-color: rgba(255,255,255,0.08);">
-                    <div style="font-size: 0.83rem; color: #D1D5DB; line-height: 1.6;">
-                        • <b>Sleep Restoration Contribution:</b> {telemetry['sleep_score']}% (Weight: 40%)<br>
-                        • <b>Neuromuscular Freshness:</b> {telemetry['soreness_score']}% (Weight: 35%)<br>
-                        • <b>Subjective CNS Readiness:</b> {telemetry['energy_score']}% (Weight: 25%)<br>
-                        • <b>Localized Tissue Guard:</b> {muscle_focus}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            with st.expander(f"📅 View Full 5-Day {selected_sport} Periodization Template", expanded=False):
-                for d_name, d_list in SPORT_WEEKLY_ROUTINES[selected_sport].items():
-                    drills_joined = ", ".join([str(d["Drill"]) for d in d_list])
-                    st.markdown(f"**{d_name}**  \n<span style='color:#9CA3AF;font-size:0.84rem;'>{drills_joined}</span>", unsafe_allow_html=True)
-
-    # ==========================================================================
-    # TAB 2: PERFORMANCE TRENDS, HISTORY GRAPHS & SESSION LOGGER
-    # ==========================================================================
-    with tab2:
-        st.markdown("#### 📊 28-Day Acute:Chronic Workload Ratio (ACWR) & Load Progression")
-        acwr_fig = build_acwr_progression_chart(df_log)
-        st.plotly_chart(acwr_fig, use_container_width=True)
-
-        g_col1, g_col2 = st.columns(2, gap="large")
-        with g_col1:
-            st.markdown("#### 🏋️ Volume Completion (Planned vs. Completed Sets — Last 7 Sessions)")
-            vol_fig = build_volume_completion_chart(df_log)
-            st.plotly_chart(vol_fig, use_container_width=True)
-
-        with g_col2:
-            st.markdown("#### 🛌 Readiness vs. Sleep & Soreness Correlation Trend")
-            scatter_fig = build_readiness_vs_fatigue_scatter(df_log)
-            st.plotly_chart(scatter_fig, use_container_width=True)
-
-        st.markdown("---")
-        form_col, table_col = st.columns([1.05, 1.65], gap="large")
-
-        with form_col:
-            st.markdown("#### 📝 Log Today's Completed Session")
-            with st.form("log_session_form", clear_on_submit=False):
-                log_date_input = st.date_input("Session Date", value=datetime.now().date())
-                log_sport_input = st.selectbox("Sport Logged", sports_list, index=sports_list.index(selected_sport))
-                c1, c2 = st.columns(2)
-                with c1:
-                    log_duration = st.number_input("Duration (Min)", min_value=15, max_value=240, value=int(planned_duration), step=5)
-                    log_planned_sets = st.number_input("Planned Sets", min_value=1, max_value=40, value=int(total_adj_sets))
-                with c2:
-                    log_rpe = st.number_input("Session RPE (1–10)", min_value=1, max_value=10, value=int(planned_rpe))
-                    log_completed_sets = st.number_input("Completed Sets", min_value=1, max_value=40, value=int(total_adj_sets))
-
-                submitted = st.form_submit_button("⚡ Commit Session to Telemetry Database", use_container_width=True)
-                if submitted:
-                    new_entry = pd.DataFrame(
-                        [
-                            {
-                                "Date": pd.to_datetime(log_date_input),
-                                "Sport": log_sport_input,
-                                "Duration_Min": int(log_duration),
-                                "RPE": int(log_rpe),
-                                "Daily_Workload": int(log_duration * log_rpe),
-                                "Sleep_Hours": float(sleep_hours),
-                                "Soreness": int(soreness_level),
-                                "Energy": int(energy_level),
-                                "Readiness_Score": float(telemetry["readiness_index"]),
-                                "Planned_Sets": int(log_planned_sets),
-                                "Completed_Sets": int(log_completed_sets),
-                            }
-                        ]
-                    )
-                    updated_df = pd.concat([st.session_state.training_log, new_entry], ignore_index=True)
-                    st.session_state.training_log = recompute_rolling_metrics(updated_df)
-                    st.success(
-                        f"Logged {log_sport_input} session ({int(log_duration * log_rpe)} AU, {log_completed_sets}/{log_planned_sets} sets). Charts updated in real time!"
-                    )
-                    st.rerun()
-
-        with table_col:
-            st.markdown("#### 🗄️ Historical Telemetry Ledger (Latest 10 Sessions)")
-            display_df = st.session_state.training_log.tail(10).sort_values("Date", ascending=False).copy()
-            display_df["Date"] = display_df["Date"].dt.strftime("%Y-%m-%d")
-            st.dataframe(
-                display_df[
-                    [
-                        "Date",
-                        "Sport",
-                        "Duration_Min",
-                        "RPE",
-                        "Daily_Workload",
-                        "Readiness_Score",
-                        "Planned_Sets",
-                        "Completed_Sets",
-                        "ACWR",
-                    ]
-                ],
-                use_container_width=True,
-                hide_index=True,
-            )
-
-    # ==========================================================================
-    # TAB 3: PRO SCOUTING & 3D AVATAR STUDIO
-    # ==========================================================================
-    with tab3:
-        st.markdown("#### 🎛️ Cascading Pro Scouting Filter & Telemetry Benchmark")
-        f_col1, f_col2, f_col3, f_col4 = st.columns([1.1, 1.3, 1.3, 1.1])
-
-        with f_col1:
-            scout_sport = st.selectbox("1. Sport Discipline", sports_list, index=sports_list.index(selected_sport), key="scout_sport")
-        scout_sport_df = athletes_df[athletes_df["Sport"] == scout_sport]
-
-        with f_col2:
-            scout_leagues = scout_sport_df["Team_League"].unique().tolist()
-            scout_league = st.selectbox("2. Team / League", ["All Leagues"] + scout_leagues, index=0, key="scout_league")
-        if scout_league != "All Leagues":
-            scout_athlete_df = scout_sport_df[scout_sport_df["Team_League"] == scout_league]
-        else:
-            scout_athlete_df = scout_sport_df
-
-        with f_col3:
-            scout_athlete_name = st.selectbox("3. Pro Athlete", scout_athlete_df["Athlete"].tolist(), index=0, key="scout_athlete")
-        scout_row = scout_athlete_df[scout_athlete_df["Athlete"] == scout_athlete_name].iloc[0]
-
-        with f_col4:
-            st.markdown("<div style='height: 26px;'></div>", unsafe_allow_html=True)
-            compare_user_toggle = st.toggle("Compare Athlete vs. User", value=True)
-
-        default_compliance_bonus = int(
-            round((df_log["Completed_Sets"].tail(7).sum() / max(1, df_log["Planned_Sets"].tail(7).sum())) * 10)
+    elif nav_selection == "🌟 Pro Scouting & 3D Avatar":
+        render_pro_scouting_view(
+            athletes_df,
+            sports_list,
+            selected_sport,
+            df_log,
+            telemetry,
+            muscle_focus,
+            soreness_level,
         )
-        user_traits = {
-            "Pace": min(99, 74 + default_compliance_bonus),
-            "Endurance": min(99, int(round(telemetry["readiness_index"] * 0.45 + 42))),
-            "Agility": min(99, 76 + default_compliance_bonus),
-            "Power": min(99, 72 + default_compliance_bonus),
-            "Tactical IQ": 82,
-            "Recovery": min(99, int(round(telemetry["readiness_index"] * 0.55 + 35))),
-        }
 
-        if compare_user_toggle:
-            with st.expander("🎚️ Customize Your Personal Athletic Telemetry Benchmarks (0–99)", expanded=False):
-                u1, u2, u3, u4, u5, u6 = st.columns(6)
-                user_traits["Pace"] = u1.slider("Your Pace", 40, 99, user_traits["Pace"])
-                user_traits["Endurance"] = u2.slider("Your Endurance", 40, 99, user_traits["Endurance"])
-                user_traits["Agility"] = u3.slider("Your Agility", 40, 99, user_traits["Agility"])
-                user_traits["Power"] = u4.slider("Your Power", 40, 99, user_traits["Power"])
-                user_traits["Tactical IQ"] = u5.slider("Your Tactical IQ", 40, 99, user_traits["Tactical IQ"])
-                user_traits["Recovery"] = u6.slider("Your Recovery", 40, 99, user_traits["Recovery"])
-
-        avatar_col, radar_col = st.columns([1.15, 1.0], gap="large")
-
-        with avatar_col:
-            st.markdown(
-                f"#### 🧍 Interactive 3D Biomechanical Avatar — `{scout_row['Athlete']}` "
-                f"<span class='status-badge badge-info' style='margin-left:8px;'>Click & Drag 360° · Scroll to Zoom</span>",
-                unsafe_allow_html=True,
+    else:
+        # All-in-One Tabbed View
+        tab1, tab2, tab3 = st.tabs(
+            [
+                "🏋️ Daily Adaptive Training & Coach",
+                "📈 Performance Trends & History Graphs",
+                "🌟 Pro Scouting & 3D Avatar Studio",
+            ]
+        )
+        with tab1:
+            render_daily_training_view(
+                selected_sport,
+                selected_day_routine,
+                telemetry,
+                muscle_focus,
+                routing_mode,
+                groq_api_key,
+                groq_model,
+                openrouter_api_key,
+                openrouter_model,
+                active_athlete,
+                sleep_hours,
+                soreness_level,
+                energy_level,
+                planned_duration,
+                planned_rpe,
             )
-            avatar_fig = build_3d_biomechanical_avatar(
-                athlete_row=scout_row,
-                muscle_focus=muscle_focus,
-                soreness_level=soreness_level,
-                readiness_index=float(telemetry["readiness_index"]),
+        with tab2:
+            render_progress_charts_view(
+                df_log,
+                sports_list,
+                selected_sport,
+                planned_duration,
+                planned_rpe,
+                default_adj_sets,
+                sleep_hours,
+                soreness_level,
+                energy_level,
+                telemetry,
             )
-            st.plotly_chart(avatar_fig, use_container_width=True)
-
-        with radar_col:
-            st.markdown(f"#### 🕸️ 6-Trait Dual Radar Telemetry — `{scout_row['Athlete']}`")
-            radar_fig = build_dual_radar_chart(
-                athlete_row=scout_row,
-                compare_user=compare_user_toggle,
-                user_traits=user_traits,
-            )
-            st.plotly_chart(radar_fig, use_container_width=True)
-
-            trait_keys = ["Pace", "Endurance", "Agility", "Power", "Tactical_IQ", "Recovery"]
-            pro_vec = np.array([float(scout_row[k]) for k in trait_keys])
-            user_vec = np.array(
-                [
-                    float(user_traits["Pace"]),
-                    float(user_traits["Endurance"]),
-                    float(user_traits["Agility"]),
-                    float(user_traits["Power"]),
-                    float(user_traits["Tactical IQ"]),
-                    float(user_traits["Recovery"]),
-                ]
-            )
-            similarity_pct = round(float(100.0 - np.mean(np.abs(pro_vec - user_vec))), 1)
-
-            st.markdown(
-                f"""
-                <div class="glass-card" style="border-left: 4px solid {scout_row['Jersey_Color']};">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div class="metric-label">{scout_row['Sport']} · {scout_row['Team_League']}</div>
-                            <div style="font-size: 1.3rem; font-weight: 800; color: #FFFFFF;">
-                                {scout_row['Athlete']} <span style="color:{scout_row['Jersey_Color']};">({scout_row['OVR']} OVR)</span>
-                            </div>
-                        </div>
-                        <span class="status-badge badge-optimal">Archetype Match: {similarity_pct}%</span>
-                    </div>
-                    <div style="font-size: 0.85rem; color: #9CA3AF; margin-top: 0.45rem;">
-                        <b>Primary Position:</b> {scout_row['Position']}<br>
-                        <b>Biomechanical Signature:</b> {scout_row['Signature_Style']}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+        with tab3:
+            render_pro_scouting_view(
+                athletes_df,
+                sports_list,
+                selected_sport,
+                df_log,
+                telemetry,
+                muscle_focus,
+                soreness_level,
             )
 
 
