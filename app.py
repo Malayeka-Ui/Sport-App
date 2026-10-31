@@ -6,14 +6,16 @@ import plotly.graph_objects as go
 import requests
 import json
 import urllib.parse
+import random
+import time
 from datetime import datetime
 from openai import OpenAI
 
 # ==============================================================================
-# PAGE CONFIGURATION & THEME STYLING
+# PAGE CONFIGURATION & STYLING
 # ==============================================================================
 st.set_page_config(
-    page_title="Badminton Pro-Hub",
+    page_title="Badminton Pro-Hub Ultimate",
     page_icon="🏸",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -32,7 +34,7 @@ st.markdown(
     .court-box {
         border: 2px dashed #0d6efd;
         border-radius: 8px;
-        padding: 14px;
+        padding: 12px;
         background-color: #f0f7ff;
         font-weight: 600;
         text-align: center;
@@ -40,13 +42,42 @@ st.markdown(
     .stButton>button {
         border-radius: 6px;
     }
+    .scorecard-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+    }
+    .scorecard-table th, .scorecard-table td {
+        border: 1px solid #333;
+        padding: 6px;
+        text-align: center;
+    }
+    .scorecard-table th {
+        background-color: #eee;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+# Helper for audio announcements via Web Speech API
+def trigger_speech(text):
+    if st.session_state.get("enable_audio", True):
+        safe_text = text.replace("'", "\\'")
+        js = f"""
+        <script>
+            if ('speechSynthesis' in window) {{
+                var msg = new SpeechSynthesisUtterance('{safe_text}');
+                msg.rate = 1.0;
+                msg.pitch = 1.0;
+                window.speechSynthesis.speak(msg);
+            }}
+        </script>
+        """
+        st.components.v1.html(js, height=0, width=0)
+
 # ==============================================================================
-# DEFAULT TRAINING PRESETS
+# DEFAULT PRESETS
 # ==============================================================================
 DEFAULT_SCHEDULE = [
     {"day": "Monday", "category": "Footwork & Agility", "drill": "6-Corner Shadow Footwork (4x20 reps)", "completed": False},
@@ -76,39 +107,46 @@ PRESET_FOOTWORK_FOCUS = [
 # ==============================================================================
 # SESSION STATE INITIALIZATION
 # ==============================================================================
-if "score_p1" not in st.session_state:
-    st.session_state.score_p1 = 0
-if "score_p2" not in st.session_state:
-    st.session_state.score_p2 = 0
-if "server" not in st.session_state:
-    st.session_state.server = "Player 1"
-if "match_history" not in st.session_state:
-    st.session_state.match_history = []
-if "p1_name" not in st.session_state:
-    st.session_state.p1_name = "Player 1"
-if "p2_name" not in st.session_state:
-    st.session_state.p2_name = "Player 2"
-if "game_over" not in st.session_state:
-    st.session_state.game_over = False
-if "winner" not in st.session_state:
-    st.session_state.winner = ""
-
-if "chat_messages" not in st.session_state:
-    st.session_state.chat_messages = [
+defaults = {
+    "match_mode": "Singles",
+    "score_p1": 0,
+    "score_p2": 0,
+    "games_p1": 0,
+    "games_p2": 0,
+    "current_game_num": 1,
+    "completed_games": [],
+    "server": "Player 1",
+    "match_history": [],
+    "p1_name": "Player 1",
+    "p2_name": "Player 2",
+    "p1_partner": "Partner 1",
+    "p2_partner": "Partner 2",
+    "p1_serving_partner": "p1",
+    "p2_serving_partner": "p2",
+    "game_over": False,
+    "match_over": False,
+    "match_winner": "",
+    "chat_messages": [
         {
             "role": "assistant",
-            "content": "Welcome to Badminton Pro-Hub! Ask me anything regarding official BWF rules, singles/doubles positioning, tactical setups, shot choices, or conditioning.",
+            "content": "Welcome to Badminton Pro-Hub! Ask me anything regarding official BWF rules, doubles rotations, deceptive clears, string tension, or footwork drills.",
         }
-    ]
+    ],
+    "training_schedule": [dict(item) for item in DEFAULT_SCHEDULE],
+    "tournament_players": "Viktor Axelsen\nShi Yuqi\nLee Zii Jia\nAnthony Ginting",
+    "tournament_type": "Single Elimination",
+    "enable_audio": True,
+}
 
-if "training_schedule" not in st.session_state:
-    st.session_state.training_schedule = [dict(item) for item in DEFAULT_SCHEDULE]
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # ==============================================================================
-# ENGINE & CALCULATION HELPERS
+# ENGINE & COMPUTATION FUNCTIONS
 # ==============================================================================
 def check_game_status(s1, s2):
-    """Enforces BWF 21-pt rules, deuce past 20-20, and 30-pt sudden death cap."""
+    """Enforces BWF 21-pt rules, deuce, and 30-pt cap."""
     if s1 >= 21 or s2 >= 21:
         diff = abs(s1 - s2)
         if diff >= 2:
@@ -120,7 +158,7 @@ def check_game_status(s1, s2):
     return False, ""
 
 def run_monte_carlo(s1, s2, server, n_simulations=1000):
-    """Simulates match outcomes factoring in serving momentum."""
+    """Simulates 1,000 matches from current score with serving momentum."""
     if s1 == s2 == 0:
         return 50.0, 50.0
 
@@ -135,7 +173,6 @@ def run_monte_carlo(s1, s2, server, n_simulations=1000):
     for _ in range(n_simulations):
         sim_s1, sim_s2 = s1, s2
         sim_srv = server
-
         while True:
             current_prob = base_p1_prob + (0.03 if sim_srv == "Player 1" else -0.03)
             current_prob = max(0.15, min(0.85, current_prob))
@@ -157,13 +194,14 @@ def run_monte_carlo(s1, s2, server, n_simulations=1000):
     p2_pct = round(100.0 - p1_pct, 1)
     return p1_pct, p2_pct
 
+# AI Rules & Fallback engine
 RULE_KNOWLEDGE_BASE = {
     "service height": "Under BWF Law 9.1.6, the whole shuttle must be below 1.15 meters (3.77 feet) from the court surface at the instant of racket impact.",
-    "fault": "Common BWF faults include: shuttle landing outside lines, shuttle passing through or under the net, touching the net during play, striking the shuttle before crossing the net, and double-hitting.",
-    "let": "A 'Let' halts play and replays the rally: called when an unforeseen hazard occurs, the shuttle breaks mid-rally, the receiver was not ready, or a stray shuttle enters the court.",
-    "interval": "A 60-second break occurs when the leading score reaches 11 points in each set. A 120-second (2-minute) break is granted between consecutive sets.",
-    "doubles positioning": "Attacking setup: Front-and-back formation (rear player smashes/drops, front player intercepts net returns). Defensive setup: Side-by-side midcourt to cover all baseline smash angles.",
-    "singles positioning": "Recover to the central T base (1-2 steps behind the service line intersection) with a synchronized split-step at the opponent's racket impact.",
+    "fault": "Common BWF faults: shuttle landing outside boundaries, touching the net during play, striking before it crosses the net, or double-hitting.",
+    "let": "A 'Let' halts play and replays the rally: unforeseen hazards, broken shuttle, receiver unprepared, or stray shuttles entering court.",
+    "interval": "60-second interval when leading score reaches 11 points. 120-second (2-minute) interval between consecutive games.",
+    "doubles positioning": "Attacking setup: Front-to-back (rear smashes/drops, front intercepts net). Defensive setup: Side-by-side midcourt.",
+    "singles positioning": "Central base recovery (1-2 steps behind service T) synchronized with a split-step at opponent contact.",
 }
 
 def match_internal_rules(query_lower):
@@ -171,36 +209,22 @@ def match_internal_rules(query_lower):
         if key in query_lower:
             return f"**BWF Official Rule Directive:**\n\n{answer}"
     if "serve" in query_lower:
-        return "BWF Law 9: Both feet must stay stationary inside the service court. The racket must hit the shuttle base below 1.15m in an uninterrupted forward stroke."
+        return "BWF Law 9: Both feet must stay stationary inside the service court. The racket must strike below 1.15m in an uninterrupted forward stroke."
     elif "net" in query_lower:
-        return "BWF Law 13.4: Touching the net with your racket, body, or clothing while the shuttle is live is an immediate fault."
-    return (
-        "**BWF Rule Engine (Offline Mode):**\n\n"
-        "Ask about *'service height'*, *'touching net'*, *'let calls'*, *'intervals'*, or *'doubles positioning'*. "
-        "Set `GROQ_API_KEY` in Streamlit Secrets to enable open-ended AI tactical advice."
-    )
+        return "BWF Law 13.4: Touching the net with your racket, body, or clothing while shuttle is live is a fault."
+    return "Ask about *'service height'*, *'touching net'*, *'let calls'*, *'intervals'*, or *'doubles positioning'*."
 
 def get_groq_openai_response(user_query, api_key):
-    """Queries OpenAI models hosted on Groq using the OpenAI Python SDK."""
     if not api_key:
         return match_internal_rules(user_query.lower())
 
-    openai_models_on_groq = [
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b",
-    ]
-
+    openai_models_on_groq = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
     try:
-        client = OpenAI(
-            api_key=api_key,
-            base_url="https://api.groq.com/openai/v1",
-        )
+        client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
         system_prompt = (
             "You are an elite BWF Certified High-Performance Badminton Coach and International Umpire. "
-            "Provide clear, tactical, rules-accurate, and concise advice. "
-            "Address footwork, racket tension, singles/doubles strategy, or BWF laws authoritatively."
+            "Provide authoritative, tactical, and rules-accurate badminton advice."
         )
-
         for model_id in openai_models_on_groq:
             try:
                 chat_completion = client.chat.completions.create(
@@ -217,114 +241,75 @@ def get_groq_openai_response(user_query, api_key):
                 if "404" in str(inner_e) or "model_not_found" in str(inner_e):
                     continue
                 raise inner_e
-
     except Exception as e:
-        return f"*(Groq Service Notice: {e}. Defaulting to offline knowledge base)*\n\n" + match_internal_rules(user_query.lower())
+        return f"*(Groq Notice: {e}. Defaulting to offline knowledge base)*\n\n" + match_internal_rules(user_query.lower())
 
     return match_internal_rules(user_query.lower())
 
 # ==============================================================================
-# ACCURATE 2D BADMINTON COURT RADAR
+# 2D BADMINTON COURT & RADAR
 # ==============================================================================
-def draw_tactical_court(server_label, p1_name, p2_name, is_even):
-    """
-    Renders accurate 2D BWF court map dynamically switching:
-    - Player 1 serving from bottom half
-    - Player 2 serving from top half
-    - Right Box (Even score) vs Left Box (Odd score)
-    - Diagonally opposite receiver target box
-    """
+def draw_tactical_court(server_label, p1_name, p2_name, is_even, is_doubles=False, p1_sub="", p2_sub=""):
     fig = go.Figure()
 
-    # Full Court Green Surface (6.10m wide x 13.40m long)
-    fig.add_shape(
-        type="rect",
-        x0=0, y0=0, x1=6.1, y1=13.4,
-        line=dict(color="#ffffff", width=3),
-        fillcolor="#1e824c",
-        opacity=0.35,
-    )
-
+    # Court surface
+    fig.add_shape(type="rect", x0=0, y0=0, x1=6.1, y1=13.4, line=dict(color="#ffffff", width=3), fillcolor="#1e824c", opacity=0.35)
     # Net (Midcourt y = 6.70m)
     fig.add_shape(type="line", x0=-0.3, y0=6.7, x1=6.4, y1=6.7, line=dict(color="#ffffff", width=4, dash="dash"))
-
-    # Singles inner side tramlines (0.46m from boundary)
+    # Singles tramlines (0.46m from edges)
     fig.add_shape(type="line", x0=0.46, y0=0, x1=0.46, y1=13.4, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=5.64, y0=0, x1=5.64, y1=13.4, line=dict(color="#ffffff", width=2))
-
-    # Short service lines (1.98m from net -> y = 4.72m and y = 8.68m)
+    # Short service lines (1.98m from net)
     fig.add_shape(type="line", x0=0, y0=4.72, x1=6.1, y1=4.72, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=0, y0=8.68, x1=6.1, y1=8.68, line=dict(color="#ffffff", width=2))
-
-    # Doubles long service lines (0.76m inside baselines)
-    fig.add_shape(type="line", x0=0, y0=0.76, x1=6.1, y1=0.76, line=dict(color="#dcdde1", width=1, dash="dot"))
-    fig.add_shape(type="line", x0=0, y0=12.64, x1=6.1, y1=12.64, line=dict(color="#dcdde1", width=1, dash="dot"))
-
-    # Center service lines (x = 3.05m)
+    # Doubles long service lines (0.76m inside baseline)
+    fig.add_shape(type="line", x0=0, y0=0.76, x1=6.1, y1=0.76, line=dict(color="#dcdde1", width=1.5, dash="dot"))
+    fig.add_shape(type="line", x0=0, y0=12.64, x1=6.1, y1=12.64, line=dict(color="#dcdde1", width=1.5, dash="dot"))
+    # Center lines
     fig.add_shape(type="line", x0=3.05, y0=0, x1=3.05, y1=4.72, line=dict(color="#ffffff", width=2))
     fig.add_shape(type="line", x0=3.05, y0=8.68, x1=3.05, y1=13.4, line=dict(color="#ffffff", width=2))
 
-    # Compute server & diagonal target receiver boxes
+    # Width limits
+    min_x = 0.0 if is_doubles else 0.46
+    max_x = 6.1 if is_doubles else 5.64
+
+    # Calculate active boxes
     if server_label == "Player 1":
-        serving_player_name = p1_name
-        receiving_player_name = p2_name
+        serving_display = f"{p1_name} ({p1_sub})" if is_doubles else p1_name
+        receiving_display = f"{p2_name} ({p2_sub})" if is_doubles else p2_name
         if is_even:
-            # Bottom-Right server -> Top-Left receiver (viewer perspective)
-            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, 5.64, 0, 4.72
-            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 0.46, 3.05, 8.68, 13.4
+            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, max_x, 0, 4.72
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = min_x, 3.05, 8.68, 12.64 if is_doubles else 13.4
             side_str = "Right Court (Even)"
         else:
-            # Bottom-Left server -> Top-Right receiver
-            srv_x0, srv_x1, srv_y0, srv_y1 = 0.46, 3.05, 0, 4.72
-            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, 5.64, 8.68, 13.4
+            srv_x0, srv_x1, srv_y0, srv_y1 = min_x, 3.05, 0, 4.72
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, max_x, 8.68, 12.64 if is_doubles else 13.4
             side_str = "Left Court (Odd)"
     else:
-        serving_player_name = p2_name
-        receiving_player_name = p1_name
+        serving_display = f"{p2_name} ({p2_sub})" if is_doubles else p2_name
+        receiving_display = f"{p1_name} ({p1_sub})" if is_doubles else p1_name
         if is_even:
-            # Top-Left server -> Bottom-Right receiver
-            srv_x0, srv_x1, srv_y0, srv_y1 = 0.46, 3.05, 8.68, 13.4
-            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, 5.64, 0, 4.72
+            srv_x0, srv_x1, srv_y0, srv_y1 = min_x, 3.05, 8.68, 13.4
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 3.05, max_x, 0, 12.64 if is_doubles else 4.72
             side_str = "Right Court (Even)"
         else:
-            # Top-Right server -> Bottom-Left receiver
-            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, 5.64, 8.68, 13.4
-            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = 0.46, 3.05, 0, 4.72
+            srv_x0, srv_x1, srv_y0, srv_y1 = 3.05, max_x, 8.68, 13.4
+            rcv_x0, rcv_x1, rcv_y0, rcv_y1 = min_x, 3.05, 0, 12.64 if is_doubles else 4.72
             side_str = "Left Court (Odd)"
 
-    # Highlight Active Serving Box
-    fig.add_shape(
-        type="rect",
-        x0=srv_x0, y0=srv_y0, x1=srv_x1, y1=srv_y1,
-        fillcolor="#f39c12", opacity=0.7,
-        line=dict(color="#d35400", width=3),
-    )
-    fig.add_annotation(
-        x=(srv_x0 + srv_x1) / 2, y=(srv_y0 + srv_y1) / 2,
-        text=f"🏸 SERVING<br><b>{serving_player_name}</b>",
-        showarrow=False,
-        font=dict(color="#ffffff", size=10, family="Arial Black"),
-    )
+    # Serving Box
+    fig.add_shape(type="rect", x0=srv_x0, y0=srv_y0, x1=srv_x1, y1=srv_y1, fillcolor="#f39c12", opacity=0.7, line=dict(color="#d35400", width=3))
+    fig.add_annotation(x=(srv_x0+srv_x1)/2, y=(srv_y0+srv_y1)/2, text=f"🏸 SERVING<br><b>{serving_display}</b>", showarrow=False, font=dict(color="#fff", size=10, family="Arial Black"))
 
-    # Highlight Target Receiver Box
-    fig.add_shape(
-        type="rect",
-        x0=rcv_x0, y0=rcv_y0, x1=rcv_x1, y1=rcv_y1,
-        fillcolor="#2980b9", opacity=0.6,
-        line=dict(color="#1abc9c", width=2, dash="dot"),
-    )
-    fig.add_annotation(
-        x=(rcv_x0 + rcv_x1) / 2, y=(rcv_y0 + rcv_y1) / 2,
-        text=f"🎯 RECEIVING<br><b>{receiving_player_name}</b>",
-        showarrow=False,
-        font=dict(color="#ffffff", size=10, family="Arial Black"),
-    )
+    # Receiver Box
+    fig.add_shape(type="rect", x0=rcv_x0, y0=rcv_y0, x1=rcv_x1, y1=rcv_y1, fillcolor="#2980b9", opacity=0.6, line=dict(color="#1abc9c", width=2, dash="dot"))
+    fig.add_annotation(x=(rcv_x0+rcv_x1)/2, y=(rcv_y0+rcv_y1)/2, text=f"🎯 RECEIVING<br><b>{receiving_display}</b>", showarrow=False, font=dict(color="#fff", size=10, family="Arial Black"))
 
-    fig.add_annotation(x=3.05, y=-0.5, text=f"🔻 {p1_name} Side", showarrow=False, font=dict(color="#ecf0f1", size=11))
-    fig.add_annotation(x=3.05, y=13.9, text=f"🔺 {p2_name} Side", showarrow=False, font=dict(color="#ecf0f1", size=11))
+    fig.add_annotation(x=3.05, y=-0.5, text=f"🔻 {p1_name} End", showarrow=False, font=dict(color="#ecf0f1", size=11))
+    fig.add_annotation(x=3.05, y=13.9, text=f"🔺 {p2_name} End", showarrow=False, font=dict(color="#ecf0f1", size=11))
 
     fig.update_layout(
-        title=f"Court Radar: {serving_player_name} serving from {side_str}",
+        title=f"Court Radar ({'Doubles' if is_doubles else 'Singles'}): {side_str}",
         xaxis=dict(range=[-0.6, 6.7], visible=False),
         yaxis=dict(range=[-1.0, 14.4], visible=False),
         width=380,
@@ -344,7 +329,11 @@ nav_choice = st.sidebar.radio(
     "Modules",
     [
         "🏸 Live Tactical Scorer",
+        "🗺️ Shot Placement Heatmap",
         "🤖 AI Rules & Tactical Coach",
+        "🏃 Interactive Footwork Pacer",
+        "🌡️ Shuttlecock Speed Optimizer",
+        "🏆 Tournament Generator",
         "🛍️ Local Equipment Finder",
         "📅 Training Schedule Planner",
         "❤️ Health, Fitness & Fatigue",
@@ -353,160 +342,260 @@ nav_choice = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**BWF Rule Reference:**")
-st.sidebar.caption("• 21 pts per game (rally point system)\n• 2-pt lead needed past 20-20\n• 30-pt sudden death cap\n• Even score = Right court, Odd = Left")
+st.sidebar.markdown("**Audible Score Announcements:**")
+st.session_state.enable_audio = st.sidebar.checkbox("🔊 Voice Umpire Enabled", value=st.session_state.enable_audio)
 
 # ==============================================================================
-# MODULE 1: LIVE TACTICAL SCORER & WIN FORECASTER
+# MODULE 1: LIVE TACTICAL SCORER (MULTI-GAME, UNDO, DOUBLES & VOICE)
 # ==============================================================================
 if nav_choice == "🏸 Live Tactical Scorer":
-    st.header("🏸 Live Tactical Scorer & Win Forecaster")
+    st.header("🏸 Live Tactical Scorer & Multi-Game Manager")
 
-    col_name1, col_name2, col_reset = st.columns([2, 2, 1])
-    with col_name1:
-        st.session_state.p1_name = st.text_input("Player / Pair 1", value=st.session_state.p1_name)
-    with col_name2:
-        st.session_state.p2_name = st.text_input("Player / Pair 2", value=st.session_state.p2_name)
-    with col_reset:
-        st.write("")
-        st.write("")
-        if st.button("🔄 Reset Match", use_container_width=True):
-            st.session_state.score_p1 = 0
-            st.session_state.score_p2 = 0
-            st.session_state.server = "Player 1"
-            st.session_state.match_history = []
-            st.session_state.game_over = False
-            st.session_state.winner = ""
-            st.rerun()
+    # Match Config
+    cfg1, cfg2, cfg3 = st.columns([1.5, 2, 2])
+    with cfg1:
+        st.session_state.match_mode = st.selectbox("Discipline", ["Singles", "Doubles"], index=0 if st.session_state.match_mode == "Singles" else 1)
+    with cfg2:
+        st.session_state.p1_name = st.text_input("Side 1 / Team", value=st.session_state.p1_name)
+        if st.session_state.match_mode == "Doubles":
+            st.session_state.p1_partner = st.text_input("Team 1 Partner", value=st.session_state.p1_partner)
+    with cfg3:
+        st.session_state.p2_name = st.text_input("Side 2 / Team", value=st.session_state.p2_name)
+        if st.session_state.match_mode == "Doubles":
+            st.session_state.p2_partner = st.text_input("Team 2 Partner", value=st.session_state.p2_partner)
 
+    # Sets & Game Standings Bar
     st.markdown("---")
-
-    server_name = st.session_state.p1_name if st.session_state.server == "Player 1" else st.session_state.p2_name
-    server_score = st.session_state.score_p1 if st.session_state.server == "Player 1" else st.session_state.score_p2
-    is_even = (server_score % 2 == 0)
-    court_side = "RIGHT" if is_even else "LEFT"
-
-    top_c1, top_c2, top_c3 = st.columns([1.5, 1.5, 2])
-    with top_c1:
-        st.metric(label=f"{st.session_state.p1_name} Score", value=st.session_state.score_p1)
-    with top_c2:
-        st.metric(label=f"{st.session_state.p2_name} Score", value=st.session_state.score_p2)
-    with top_c3:
+    sc_col1, sc_col2, sc_col3, sc_col4 = st.columns([1.5, 1.5, 2, 1])
+    with sc_col1:
+        st.metric(f"{st.session_state.p1_name} (Games: {st.session_state.games_p1})", st.session_state.score_p1)
+    with sc_col2:
+        st.metric(f"{st.session_state.p2_name} (Games: {st.session_state.games_p2})", st.session_state.score_p2)
+    with sc_col3:
+        current_srv = st.session_state.p1_name if st.session_state.server == "Player 1" else st.session_state.p2_name
+        srv_score = st.session_state.score_p1 if st.session_state.server == "Player 1" else st.session_state.score_p2
+        is_even = (srv_score % 2 == 0)
+        box_side = "RIGHT" if is_even else "LEFT"
         st.markdown(
             f"""
             <div class="court-box">
-                🏸 Serving: <strong>{server_name}</strong><br>
-                Court Position: <strong>{court_side} Box ({'Even' if is_even else 'Odd'} Score)</strong>
+                Game {st.session_state.current_game_num} of 3<br>
+                🏸 Serving: <b>{current_srv}</b> ({box_side} Court)
             </div>
             """,
             unsafe_allow_html=True,
         )
+    with sc_col4:
+        st.write("")
+        if st.button("↩️ Undo Point", use_container_width=True, disabled=len(st.session_state.match_history) == 0):
+            last = st.session_state.match_history.pop()
+            st.session_state.score_p1 = last["prev_s1"]
+            st.session_state.score_p2 = last["prev_s2"]
+            st.session_state.server = last["prev_server"]
+            st.session_state.game_over = False
+            trigger_speech("Point Undone")
+            st.rerun()
 
-    if st.session_state.game_over:
-        st.success(f"🏆 Match Finished! Winner: **{st.session_state.winner}**")
+        if st.button("🔄 Full Reset", use_container_width=True):
+            st.session_state.score_p1 = 0
+            st.session_state.score_p2 = 0
+            st.session_state.games_p1 = 0
+            st.session_state.games_p2 = 0
+            st.session_state.current_game_num = 1
+            st.session_state.completed_games = []
+            st.session_state.server = "Player 1"
+            st.session_state.match_history = []
+            st.session_state.game_over = False
+            st.session_state.match_over = False
+            st.rerun()
 
-    st.subheader("Point Logger")
+    # Change ends notification for 3rd set
+    if st.session_state.current_game_num == 3 and (st.session_state.score_p1 == 11 or st.session_state.score_p2 == 11):
+        st.warning("⚠️ **BWF Change of Ends:** Score has reached 11 points in deciding set. Players switch sides!")
+
+    # Game / Match alerts
+    if st.session_state.game_over and not st.session_state.match_over:
+        st.success(f"🏆 Game {st.session_state.current_game_num} Winner: **{st.session_state.last_game_winner}**!")
+        if st.button("▶️ Advance to Next Game"):
+            st.session_state.completed_games.append({
+                "game": st.session_state.current_game_num,
+                "p1_score": st.session_state.score_p1,
+                "p2_score": st.session_state.score_p2,
+                "winner": st.session_state.last_game_winner
+            })
+            if st.session_state.score_p1 > st.session_state.score_p2:
+                st.session_state.games_p1 += 1
+            else:
+                st.session_state.games_p2 += 1
+
+            if st.session_state.games_p1 == 2:
+                st.session_state.match_over = True
+                st.session_state.match_winner = st.session_state.p1_name
+                trigger_speech(f"Match won by {st.session_state.p1_name}")
+            elif st.session_state.games_p2 == 2:
+                st.session_state.match_over = True
+                st.session_state.match_winner = st.session_state.p2_name
+                trigger_speech(f"Match won by {st.session_state.p2_name}")
+            else:
+                st.session_state.current_game_num += 1
+                st.session_state.score_p1 = 0
+                st.session_state.score_p2 = 0
+                st.session_state.game_over = False
+                trigger_speech(f"Game {st.session_state.current_game_num}. Love all, play.")
+            st.rerun()
+
+    if st.session_state.match_over:
+        st.balloons()
+        st.success(f"🥇 **MATCH CHAMPION: {st.session_state.match_winner}** (Best of 3 Sets)")
+
+    # Point logging buttons & sector targeting
+    st.markdown("---")
+    st.subheader("Point Logger & Coordinate Placement")
+
+    sector_choices = ["Front-Left (Net)", "Front-Right (Net)", "Mid-Left (Drive)", "Mid-Right (Drive)", "Back-Left (Baseline)", "Back-Right (Baseline)"]
     shot_types = ["Smash Winner", "Drop Winner", "Net Kill", "Opponent Out", "Opponent Net Error", "Service Fault"]
 
-    btn_col1, btn_col2 = st.columns(2)
-    with btn_col1:
-        st.markdown(f"**Award Point to: {st.session_state.p1_name}**")
-        p1_shot = st.selectbox("Point Outcome (P1)", shot_types, key="p1_shot_select")
-        if st.button(f"➕ Score for {st.session_state.p1_name}", disabled=st.session_state.game_over, use_container_width=True):
+    b1, b2 = st.columns(2)
+    with b1:
+        st.markdown(f"**Award to: {st.session_state.p1_name}**")
+        p1_shot = st.selectbox("Point Outcome (Side 1)", shot_types, key="p1_st")
+        p1_sec = st.selectbox("Shuttle Placement Sector", sector_choices, key="p1_sec")
+        if st.button(f"➕ Score for {st.session_state.p1_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
+            prev_s1, prev_s2 = st.session_state.score_p1, st.session_state.score_p2
             st.session_state.score_p1 += 1
             st.session_state.server = "Player 1"
             st.session_state.match_history.append({
+                "game": st.session_state.current_game_num,
                 "rally": len(st.session_state.match_history) + 1,
                 "winner": st.session_state.p1_name,
                 "shot": p1_shot,
+                "sector": p1_sec,
                 "p1_score": st.session_state.score_p1,
                 "p2_score": st.session_state.score_p2,
-                "timestamp": datetime.now().strftime("%H:%M:%S"),
+                "prev_s1": prev_s1,
+                "prev_s2": prev_s2,
+                "prev_server": st.session_state.server,
             })
             ended, win = check_game_status(st.session_state.score_p1, st.session_state.score_p2)
             if ended:
                 st.session_state.game_over = True
-                st.session_state.winner = win
+                st.session_state.last_game_winner = win
+                trigger_speech(f"Game to {win}")
+            else:
+                trigger_speech(f"{st.session_state.score_p1}, {st.session_state.score_p2}")
             st.rerun()
 
-    with btn_col2:
-        st.markdown(f"**Award Point to: {st.session_state.p2_name}**")
-        p2_shot = st.selectbox("Point Outcome (P2)", shot_types, key="p2_shot_select")
-        if st.button(f"➕ Score for {st.session_state.p2_name}", disabled=st.session_state.game_over, use_container_width=True):
+    with b2:
+        st.markdown(f"**Award to: {st.session_state.p2_name}**")
+        p2_shot = st.selectbox("Point Outcome (Side 2)", shot_types, key="p2_st")
+        p2_sec = st.selectbox("Shuttle Placement Sector", sector_choices, key="p2_sec")
+        if st.button(f"➕ Score for {st.session_state.p2_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
+            prev_s1, prev_s2 = st.session_state.score_p1, st.session_state.score_p2
             st.session_state.score_p2 += 1
             st.session_state.server = "Player 2"
             st.session_state.match_history.append({
+                "game": st.session_state.current_game_num,
                 "rally": len(st.session_state.match_history) + 1,
                 "winner": st.session_state.p2_name,
                 "shot": p2_shot,
+                "sector": p2_sec,
                 "p1_score": st.session_state.score_p1,
                 "p2_score": st.session_state.score_p2,
-                "timestamp": datetime.now().strftime("%H:%M:%S"),
+                "prev_s1": prev_s1,
+                "prev_s2": prev_s2,
+                "prev_server": st.session_state.server,
             })
             ended, win = check_game_status(st.session_state.score_p1, st.session_state.score_p2)
             if ended:
                 st.session_state.game_over = True
-                st.session_state.winner = win
+                st.session_state.last_game_winner = win
+                trigger_speech(f"Game to {win}")
+            else:
+                trigger_speech(f"{st.session_state.score_p1}, {st.session_state.score_p2}")
             st.rerun()
 
+    # Monte Carlo & Court Radar
     st.markdown("---")
-    sim_col, court_col = st.columns([3, 2])
-    with sim_col:
-        st.subheader("🎲 Monte Carlo Win Forecaster (1,000 Simulations)")
-        if not st.session_state.game_over:
-            p1_prob, p2_prob = run_monte_carlo(
-                st.session_state.score_p1, st.session_state.score_p2, st.session_state.server
-            )
-        else:
-            p1_prob = 100.0 if st.session_state.winner == st.session_state.p1_name else 0.0
-            p2_prob = 100.0 - p1_prob
-
+    mc_col, crt_col = st.columns([3, 2])
+    with mc_col:
+        st.subheader("🎲 Monte Carlo Win Forecaster")
+        p1_prob, p2_prob = run_monte_carlo(st.session_state.score_p1, st.session_state.score_p2, st.session_state.server)
         m1, m2 = st.columns(2)
-        m1.metric(f"{st.session_state.p1_name} Win Prob.", f"{p1_prob}%")
-        m2.metric(f"{st.session_state.p2_name} Win Prob.", f"{p2_prob}%")
+        m1.metric(f"{st.session_state.p1_name} Win Rate", f"{p1_prob}%")
+        m2.metric(f"{st.session_state.p2_name} Win Rate", f"{p2_prob}%")
         st.progress(int(p1_prob))
 
-    with court_col:
+    with crt_col:
         st.plotly_chart(
             draw_tactical_court(
                 server_label=st.session_state.server,
                 p1_name=st.session_state.p1_name,
                 p2_name=st.session_state.p2_name,
                 is_even=is_even,
+                is_doubles=(st.session_state.match_mode == "Doubles"),
+                p1_sub=st.session_state.p1_partner,
+                p2_sub=st.session_state.p2_partner,
             ),
             use_container_width=True,
         )
 
+    # Printable Scorecard Generator
+    st.markdown("---")
+    st.subheader("📋 BWF Official Printable Scoresheet")
     if st.session_state.match_history:
-        st.markdown("---")
-        st.subheader("📊 Match Progression & Shot Breakdown")
-        df_history = pd.DataFrame(st.session_state.match_history)
-
-        graph_col1, graph_col2 = st.columns(2)
-        with graph_col1:
-            fig_timeline = go.Figure()
-            fig_timeline.add_trace(go.Scatter(x=df_history["rally"], y=df_history["p1_score"], mode="lines+markers", name=st.session_state.p1_name, line=dict(color="#1f77b4", width=3)))
-            fig_timeline.add_trace(go.Scatter(x=df_history["rally"], y=df_history["p2_score"], mode="lines+markers", name=st.session_state.p2_name, line=dict(color="#ff7f0e", width=3)))
-            fig_timeline.update_layout(title="Rally Progression Timeline", xaxis_title="Rally Number", yaxis_title="Score", template="plotly_white")
-            st.plotly_chart(fig_timeline, use_container_width=True)
-
-        with graph_col2:
-            shot_counts = df_history.groupby(["winner", "shot"]).size().reset_index(name="count")
-            fig_shots = px.bar(shot_counts, x="shot", y="count", color="winner", barmode="group", title="Points Won by Shot Type", template="plotly_white")
-            st.plotly_chart(fig_shots, use_container_width=True)
-
-        csv_data = df_history.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Export Full Match Log (CSV)", data=csv_data, file_name="badminton_match_log.csv", mime="text/csv")
+        scorecard_html = f"""
+        <table class="scorecard-table">
+            <tr>
+                <th colspan="4">BWF Match Scoresheet: {st.session_state.p1_name} vs {st.session_state.p2_name} ({st.session_state.match_mode})</th>
+            </tr>
+            <tr>
+                <th>Game</th><th>Rally #</th><th>Point Won By</th><th>Scoreline</th>
+            </tr>
+        """
+        for r in st.session_state.match_history[-8:]:
+            scorecard_html += f"<tr><td>{r['game']}</td><td>{r['rally']}</td><td>{r['winner']} ({r['shot']})</td><td>{r['p1_score']} - {r['p2_score']}</td></tr>"
+        scorecard_html += "</table>"
+        st.markdown(scorecard_html, unsafe_allow_html=True)
 
 # ==============================================================================
-# MODULE 2: AI RULES ARBITER & TACTICAL COACH (GROQ OPENAI MODELS)
+# MODULE 2: INTERACTIVE SHOT PLACEMENT HEATMAP
+# ==============================================================================
+elif nav_choice == "🗺️ Shot Placement Heatmap":
+    st.header("🗺️ Interactive Shot Placement Heatmap")
+    st.caption("Analyzes rally finishing zones, smash distributions, and tactical court vulnerabilities.")
+
+    if not st.session_state.match_history:
+        st.info("No rallies recorded yet. Play and log shots in the Tactical Scorer to generate heatmaps.")
+    else:
+        df_shots = pd.DataFrame(st.session_state.match_history)
+        sector_coords = {
+            "Front-Left (Net)": (1.5, 5.7),
+            "Front-Right (Net)": (4.5, 5.7),
+            "Mid-Left (Drive)": (1.5, 3.5),
+            "Mid-Right (Drive)": (4.5, 3.5),
+            "Back-Left (Baseline)": (1.5, 1.2),
+            "Back-Right (Baseline)": (4.5, 1.2),
+        }
+        df_shots["x"] = df_shots["sector"].map(lambda s: sector_coords.get(s, (3.0, 3.0))[0] + np.random.uniform(-0.3, 0.3))
+        df_shots["y"] = df_shots["sector"].map(lambda s: sector_coords.get(s, (3.0, 3.0))[1] + np.random.uniform(-0.3, 0.3))
+
+        fig_heat = px.density_contour(
+            df_shots, x="x", y="y", color="winner",
+            range_x=[0, 6.1], range_y=[0, 6.7],
+            title="Landing Density by Player (Half-Court Perspective)"
+        )
+        fig_heat.add_trace(go.Scatter(x=df_shots["x"], y=df_shots["y"], mode="markers", marker=dict(size=8, color="#e74c3c"), text=df_shots["shot"]))
+        fig_heat.update_layout(plot_bgcolor="#1e272e", width=700, height=450)
+        st.plotly_chart(fig_heat, use_container_width=True)
+
+# ==============================================================================
+# MODULE 3: AI RULES ARBITER & COACH (GROQ OPENAI SDK)
 # ==============================================================================
 elif nav_choice == "🤖 AI Rules & Tactical Coach":
     st.header("🤖 AI Rules Arbiter & Tactical Coach")
     st.caption("Powered by OpenAI Models on Groq LPU Architecture & BWF Regulations Engine")
 
     groq_api_key = st.secrets.get("GROQ_API_KEY", "")
-
     if groq_api_key:
         st.success("🟢 AI Coach Engine Online (Connected to OpenAI Models via Groq)")
     else:
@@ -530,7 +619,120 @@ elif nav_choice == "🤖 AI Rules & Tactical Coach":
             st.markdown(response_text)
 
 # ==============================================================================
-# MODULE 3: LOCAL SPORTS GEAR & EQUIPMENT FINDER (GEO-AWARE)
+# MODULE 4: INTERACTIVE FOOTWORK PACER & METRONOME
+# ==============================================================================
+elif nav_choice == "🏃 Interactive Footwork Pacer":
+    st.header("🏃 Interactive Shadow Footwork Pacer & Audio Metronome")
+    st.caption("Solo reaction trainer calling out random corners to sharpen multi-directional split-steps.")
+
+    col_p1, col_p2, col_p3 = st.columns(3)
+    with col_p1:
+        interval_speed = st.slider("Corner Call Interval (Seconds)", min_value=1.0, max_value=4.0, value=2.0, step=0.5)
+    with col_p2:
+        drill_reps = st.number_input("Total Rallies / Shots", min_value=10, max_value=60, value=20)
+    with col_p3:
+        include_smash = st.checkbox("Include Jumping Smashes", value=True)
+
+    corners = ["Front Left Net", "Front Right Net", "Midcourt Left Drive", "Midcourt Right Drive", "Rear Left Clear", "Rear Right Smash"]
+    if not include_smash:
+        corners.remove("Rear Right Smash")
+
+    if st.button("🚀 Start Footwork Drill", use_container_width=True):
+        st.info("Drill Started! Listen to speech prompts and react to the screen:")
+        prog = st.progress(0)
+        status_placeholder = st.empty()
+
+        for i in range(drill_reps):
+            target = random.choice(corners)
+            trigger_speech(target)
+            status_placeholder.markdown(
+                f"""
+                <div style="background-color:#0984e3; padding:35px; border-radius:10px; text-align:center; color:white;">
+                    <h2>SHOT {i+1} / {drill_reps}</h2>
+                    <h1>🏸 {target.upper()}</h1>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            prog.progress((i + 1) / drill_reps)
+            time.sleep(interval_speed)
+
+        st.success("🎉 Drill Complete! Recover and log your sets in the Training Planner.")
+
+# ==============================================================================
+# MODULE 5: SHUTTLECOCK SPEED & ELEVATION ADJUSTER
+# ==============================================================================
+elif nav_choice == "🌡️ Shuttlecock Speed Optimizer":
+    st.header("🌡️ Shuttlecock Speed & Altitude Optimizer")
+    st.caption("Calculate exact BWF shuttlecock speed ratings based on ambient temperature, humidity, and elevation.")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        temp = st.number_input("Hall Temperature (°C)", min_value=10.0, max_value=42.0, value=24.0)
+    with c2:
+        elevation = st.number_input("Court Altitude (Meters above sea level)", min_value=0, max_value=3000, value=350)
+    with c3:
+        humidity = st.slider("Relative Humidity (%)", min_value=10, max_value=95, value=50)
+
+    # Physics logic: Thinner air (high altitude/hot temps) makes shuttle fly faster
+    speed_score = (temp * 0.5) + (elevation * 0.008) - (humidity * 0.05)
+    if speed_score < 14:
+        rec_speed = "Speed 78 (Fast / Heavy)"
+        tip_action = "No tipping required. Ideal for cold halls."
+    elif speed_score < 18:
+        rec_speed = "Speed 77 (Standard / Moderate)"
+        tip_action = "Standard factory flight. Test with 2 baseline clears."
+    else:
+        rec_speed = "Speed 76 (Slow / Light)"
+        tip_action = "Shuttle flies fast. Tip every second feather slightly outward to slow flight speed."
+
+    st.markdown("---")
+    s1, s2 = st.columns(2)
+    s1.metric("Recommended Shuttlecock Rating", rec_speed)
+    s2.info(f"**Feather Tipping Instruction:** {tip_action}")
+
+# ==============================================================================
+# MODULE 6: TOURNAMENT GENERATOR (BRACKET & ROUND ROBIN)
+# ==============================================================================
+elif nav_choice == "🏆 Tournament Generator":
+    st.header("🏆 Tournament Bracket & Round-Robin Generator")
+    st.caption("Instant competition scheduling and draw generation for clubs and tournaments.")
+
+    t1, t2 = st.columns([2, 1])
+    with t1:
+        player_list_str = st.text_area("Enter Player / Pair Names (one per line)", value=st.session_state.tournament_players, height=140)
+        st.session_state.tournament_players = player_list_str
+    with t2:
+        tourn_mode = st.radio("Tournament Format", ["Single Elimination Bracket", "Round-Robin League"])
+
+    players = [p.strip() for p in player_list_str.split("\n") if p.strip()]
+
+    if st.button("⚡ Generate Draw / Fixtures"):
+        if len(players) < 2:
+            st.warning("Please enter at least 2 players.")
+        elif tourn_mode == "Single Elimination Bracket":
+            st.subheader("Tournament Knockout Bracket")
+            random.shuffle(players)
+            matches = []
+            for i in range(0, len(players) - 1, 2):
+                matches.append((players[i], players[i+1]))
+            if len(players) % 2 != 0:
+                matches.append((players[-1], "BYE (Advances to Round 2)"))
+
+            for idx, m in enumerate(matches):
+                st.markdown(f"**Match {idx+1}:** 🏸 `{m[0]}` **vs** `{m[1]}`")
+        else:
+            st.subheader("Round-Robin League Schedule")
+            fixtures = []
+            for i in range(len(players)):
+                for j in range(i + 1, len(players)):
+                    fixtures.append((players[i], players[j]))
+            df_fix = pd.DataFrame(fixtures, columns=["Team 1", "Team 2"])
+            df_fix["Status"] = "Scheduled"
+            st.dataframe(df_fix, use_container_width=True)
+
+# ==============================================================================
+# MODULE 7: LOCAL SPORTS GEAR & EQUIPMENT FINDER (GEO-AWARE)
 # ==============================================================================
 elif nav_choice == "🛍️ Local Equipment Finder":
     st.header("🛍️ Local Sports Gear & Equipment Finder")
@@ -577,7 +779,6 @@ elif nav_choice == "🛍️ Local Equipment Finder":
                         name = tags.get("name", "Local Sports / Badminton Outlet")
                         street = tags.get("addr:street", tags.get("addr:full", "City Center / Main Bazaar"))
                         shop_type = tags.get("shop", "Sports Shop")
-
                         store_query = urllib.parse.quote(f"{name} {city_input}")
                         gmaps_link = f"https://www.google.com/maps/search/?api=1&query={store_query}"
 
@@ -600,30 +801,16 @@ elif nav_choice == "🛍️ Local Equipment Finder":
                             hide_index=True,
                         )
                     else:
-                        st.warning(f"No specific sports shop nodes mapped on OpenStreetMap for {city_input}. Direct query generated below:")
                         direct_url = f"https://www.google.com/maps/search/badminton+sports+gear+store+in+{urllib.parse.quote(city_input)}"
                         st.markdown(f"👉 **[Search Badminton Stores in {city_input} on Google Maps]({direct_url})**")
                 else:
                     st.error("Could not resolve location coordinates. Please verify city and country spelling.")
             except Exception:
-                st.info("Direct OSM connection timed out. You can browse local shops directly via Google Maps:")
                 fallback_url = f"https://www.google.com/maps/search/badminton+shops+{urllib.parse.quote(city_input)}"
                 st.markdown(f"👉 **[Click here to view Badminton Stores in {city_input}]({fallback_url})**")
 
-    st.markdown("---")
-    st.subheader("🌐 Global & Regional Equipment Portals")
-    col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-    with col_r1:
-        st.markdown("**Yonex Official**\n[yonex.com](https://www.yonex.com)")
-    with col_r2:
-        st.markdown("**Victor Rackets**\n[victorsport.com](https://www.victorsport.com)")
-    with col_r3:
-        st.markdown("**Li-Ning Badminton**\n[lining.com](https://www.lining.com)")
-    with col_r4:
-        st.markdown("**Local / Global Retail**\n[Amazon](https://www.amazon.com) | [Daraz](https://www.daraz.pk) | [Decathlon](https://www.decathlon.com)")
-
 # ==============================================================================
-# MODULE 4: TRAINING SCHEDULE & SESSION ORGANIZER (PRESETS & RESETS)
+# MODULE 8: TRAINING SCHEDULE & SESSION ORGANIZER (PRESETS & RESETS)
 # ==============================================================================
 elif nav_choice == "📅 Training Schedule Planner":
     st.header("📅 Training Schedule & Session Organizer")
@@ -695,27 +882,15 @@ elif nav_choice == "📅 Training Schedule Planner":
     exp_col1, exp_col2 = st.columns(2)
     with exp_col1:
         json_schedule = json.dumps(st.session_state.training_schedule, indent=2)
-        st.download_button(
-            label="📥 Export Schedule as JSON",
-            data=json_schedule,
-            file_name="badminton_training_plan.json",
-            mime="application/json",
-            use_container_width=True,
-        )
+        st.download_button("📥 Export Schedule as JSON", data=json_schedule, file_name="badminton_training_plan.json", mime="application/json", use_container_width=True)
     with exp_col2:
         if st.session_state.training_schedule:
             df_sched = pd.DataFrame(st.session_state.training_schedule)
             csv_sched = df_sched.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                label="📥 Export Schedule as CSV",
-                data=csv_sched,
-                file_name="badminton_training_plan.csv",
-                mime="text/csv",
-                use_container_width=True,
-            )
+            st.download_button("📥 Export Schedule as CSV", data=csv_sched, file_name="badminton_training_plan.csv", mime="text/csv", use_container_width=True)
 
 # ==============================================================================
-# MODULE 5: HEALTH, FITNESS & FATIGUE TRACKER
+# MODULE 9: HEALTH, FITNESS & FATIGUE TRACKER
 # ==============================================================================
 elif nav_choice == "❤️ Health, Fitness & Fatigue":
     st.header("❤️ Health, Fitness & Fatigue Tracker")
@@ -776,7 +951,7 @@ elif nav_choice == "❤️ Health, Fitness & Fatigue":
         advice = "Low muscle strain. Standard cool-down stretching is sufficient."
     elif fatigue_score < 8.0:
         recovery_time = "24 Hours"
-        advice = "Moderate muscle fatigue. Ensure adequate protein synthesis and 7-8 hours sleep before next on-court session."
+        advice = "Moderate muscle fatigue. Ensure adequate protein synthesis and 7-8 hours sleep."
     else:
         recovery_time = "36 - 48 Hours"
         advice = "High neuromuscular fatigue. Strict active recovery recommended to protect tendons."
@@ -785,18 +960,8 @@ elif nav_choice == "❤️ Health, Fitness & Fatigue":
     rf1.metric("Recommended Rest Interval", recovery_time)
     rf2.info(advice)
 
-    with st.expander("🧘 Essential Badminton Injury Prevention Protocols"):
-        st.markdown(
-            """
-            - **Achilles Tendon & Calf:** Dynamic eccentric heel drops prior to matches; static wall calf stretch for 45s post-match.
-            - **Patellar Tendon (Jumper's Knee):** Foam roll quadriceps and IT band; incorporate isometric Spanish squats.
-            - **Shoulder Rotator Cuff:** Internal & external resistance band rotations (3x15) to maintain posterior shoulder balance against explosive smash velocity.
-            - **Ankle Sprain Mitigation:** High-friction non-marking badminton shoes and lateral hopping drills to reinforce stabilizing ankle ligaments.
-            """
-        )
-
 # ==============================================================================
-# MODULE 6: RACKET & TENSION OPTIMIZER
+# MODULE 10: RACKET & TENSION OPTIMIZER
 # ==============================================================================
 elif nav_choice == "⚙️ Racket & Tension Optimizer":
     st.header("⚙️ Racket & Tension Optimizer")
@@ -821,7 +986,7 @@ elif nav_choice == "⚙️ Racket & Tension Optimizer":
     if shuttle_type.startswith("Nylon"):
         low_t -= 2
         high_t -= 2
-        shuttle_note = "Plastic shuttles are heavier and stiffer; lower tension protects your racket frame and prevents golfer's elbow."
+        shuttle_note = "Plastic shuttles are heavier and stiffer; lower tension protects your racket frame."
     else:
         shuttle_note = "Feather shuttles provide clean aerodynamic trajectory suited for crisp string beds."
 
@@ -837,11 +1002,3 @@ elif nav_choice == "⚙️ Racket & Tension Optimizer":
     t3.metric("Recommended String Gauge", rec_string.split()[1])
 
     st.info(f"**Shuttlecock Factor:** {shuttle_note}")
-
-    with st.expander("🔬 Physics of String Tension (Repulsion vs. Control)"):
-        st.markdown(
-            """
-            - **Lower Tension (20-23 lbs):** Generates a larger trampoline effect with a huge sweet spot. Produces effortless depth for clears and protects the forearm tendons from vibrations.
-            - **Higher Tension (26-30+ lbs):** Smaller sweet spot requiring precise hitting technique. Produces crisp feedback, fast shuttle repulsion off the racket face, and superior spin control on net slices.
-            """
-        )
