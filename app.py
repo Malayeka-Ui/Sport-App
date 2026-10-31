@@ -178,8 +178,12 @@ defaults = {
     "game_over": False,
     "match_over": False,
     "match_winner": "",
+    # --- Match Clock State ---
+    "match_running": False,
     "match_start_time": None,
+    "accumulated_match_time": 0.0,
     "rally_start_time": time.time(),
+    # -------------------------
     "chat_messages": [
         {
             "role": "assistant",
@@ -365,12 +369,11 @@ st.sidebar.markdown("**Audible Score Announcements:**")
 st.session_state.enable_audio = st.sidebar.checkbox("🔊 Voice Umpire Enabled", value=st.session_state.enable_audio)
 
 # ==============================================================================
-# MODULE 1: LIVE TACTICAL SCORER (WITH TIMERS, STREAKS & VOICE)
+# MODULE 1: LIVE TACTICAL SCORER (WITH START/PAUSE MATCH TIMER)
 # ==============================================================================
 if nav_choice == "🏸 Live Tactical Scorer":
     st.header("🏸 Live Tactical Scorer & Multi-Game Manager")
 
-    # Match Config
     cfg1, cfg2, cfg3 = st.columns([1.5, 2, 2])
     with cfg1:
         st.session_state.match_mode = st.selectbox("Discipline", ["Singles", "Doubles"], index=0 if st.session_state.match_mode == "Singles" else 1)
@@ -383,28 +386,53 @@ if nav_choice == "🏸 Live Tactical Scorer":
         if st.session_state.match_mode == "Doubles":
             st.session_state.p2_partner = st.text_input("Team 2 Partner", value=st.session_state.p2_partner)
 
-    # Master Timers Bar
+    # --------------------------------------------------------------------------
+    # MASTER MATCH CLOCK WITH START / PAUSE BUTTONS
+    # --------------------------------------------------------------------------
     now_ts = time.time()
-    if st.session_state.match_start_time is None and len(st.session_state.match_history) > 0:
-        st.session_state.match_start_time = now_ts
 
-    total_elapsed_sec = int(now_ts - st.session_state.match_start_time) if st.session_state.match_start_time else 0
+    if st.session_state.match_running:
+        current_elapsed = st.session_state.accumulated_match_time + (now_ts - st.session_state.match_start_time)
+    else:
+        current_elapsed = st.session_state.accumulated_match_time
+
+    total_elapsed_sec = int(current_elapsed)
     mins, secs = divmod(total_elapsed_sec, 60)
     hrs, mins = divmod(mins, 60)
     match_clock_str = f"{hrs:02d}:{mins:02d}:{secs:02d}"
 
     st.markdown("---")
-    tbar1, tbar2, tbar3 = st.columns(3)
-    tbar1.metric("⏱️ Overall Match Duration", match_clock_str)
-    cur_rally_dur = round(max(1.0, now_ts - st.session_state.rally_start_time), 1)
-    tbar2.metric("⏳ Current Rally Clock", f"{cur_rally_dur}s")
+    tbar1, tbar2, tbar3, tbar4 = st.columns([1.5, 1.2, 1.2, 2])
 
-    # Momentum Banner
-    streak_holder, streak_count = get_current_streak()
-    if streak_count >= 3:
-        tbar3.markdown(f'<div class="streak-banner">🔥 MOMENTUM: {streak_holder} on a {streak_count}-Point Run!</div>', unsafe_allow_html=True)
-    else:
-        tbar3.info("Momentum balanced. Service turnover active.")
+    with tbar1:
+        st.metric("⏱️ Match Duration", match_clock_str)
+
+    with tbar2:
+        st.write("")
+        if not st.session_state.match_running:
+            if st.button("▶️ Start Match Clock", use_container_width=True):
+                st.session_state.match_running = True
+                st.session_state.match_start_time = time.time()
+                trigger_speech("Match clock started.")
+                st.rerun()
+        else:
+            if st.button("⏸️ Pause Match Clock", use_container_width=True):
+                st.session_state.accumulated_match_time += time.time() - st.session_state.match_start_time
+                st.session_state.match_running = False
+                st.session_state.match_start_time = None
+                trigger_speech("Match clock paused.")
+                st.rerun()
+
+    with tbar3:
+        cur_rally_dur = round(max(1.0, now_ts - st.session_state.rally_start_time), 1)
+        st.metric("⏳ Rally Clock", f"{cur_rally_dur}s")
+
+    with tbar4:
+        streak_holder, streak_count = get_current_streak()
+        if streak_count >= 3:
+            st.markdown(f'<div class="streak-banner">🔥 MOMENTUM: {streak_holder} on a {streak_count}-Point Run!</div>', unsafe_allow_html=True)
+        else:
+            st.info("Momentum balanced. Service turnover active.")
 
     # Standings & Scoring
     sc_col1, sc_col2, sc_col3, sc_col4 = st.columns([1.5, 1.5, 2, 1])
@@ -448,7 +476,10 @@ if nav_choice == "🏸 Live Tactical Scorer":
             st.session_state.match_history = []
             st.session_state.game_over = False
             st.session_state.match_over = False
+            # Reset Clock
+            st.session_state.match_running = False
             st.session_state.match_start_time = None
+            st.session_state.accumulated_match_time = 0.0
             st.session_state.rally_start_time = time.time()
             st.rerun()
 
@@ -510,7 +541,9 @@ if nav_choice == "🏸 Live Tactical Scorer":
         p1_shot = st.selectbox("Point Outcome (Side 1)", shot_types, key="p1_st")
         p1_sec = st.selectbox("Landing Sector on Opponent Court", p1_sectors, key="p1_sec")
         if st.button(f"➕ Score for {st.session_state.p1_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
-            if st.session_state.match_start_time is None:
+            # Auto-start master clock if not already running
+            if not st.session_state.match_running:
+                st.session_state.match_running = True
                 st.session_state.match_start_time = time.time()
 
             point_duration = round(max(1.0, time.time() - st.session_state.rally_start_time), 1)
@@ -557,7 +590,9 @@ if nav_choice == "🏸 Live Tactical Scorer":
         p2_shot = st.selectbox("Point Outcome (Side 2)", shot_types, key="p2_st")
         p2_sec = st.selectbox("Landing Sector on Opponent Court", p2_sectors, key="p2_sec")
         if st.button(f"➕ Score for {st.session_state.p2_name}", disabled=st.session_state.game_over or st.session_state.match_over, use_container_width=True):
-            if st.session_state.match_start_time is None:
+            # Auto-start master clock if not already running
+            if not st.session_state.match_running:
+                st.session_state.match_running = True
                 st.session_state.match_start_time = time.time()
 
             point_duration = round(max(1.0, time.time() - st.session_state.rally_start_time), 1)
@@ -624,7 +659,7 @@ if nav_choice == "🏸 Live Tactical Scorer":
         )
 
 # ==============================================================================
-# MODULE 2: POINT REPLAY VISUALIZER (FULL TRAJECTORY & TIMER REVIEW)
+# MODULE 2: POINT REPLAY VISUALIZER
 # ==============================================================================
 elif nav_choice == "🎞️ Match Point Replay":
     st.header("🎞️ Match Point Replay Visualizer & Flight Log")
@@ -773,7 +808,6 @@ elif nav_choice == "🏃 Movement & Mileage Tracker":
     st.caption("Estimates physical distance covered based on rally counts, tempo, and court dimensions.")
 
     rallies_count = len(st.session_state.match_history)
-    # Competitive badminton averages ~6.4m of court coverage per rally
     est_meters = rallies_count * 6.4
     km_covered = round(est_meters / 1000.0, 2)
     est_lunges = int(rallies_count * 2.8)
@@ -872,7 +906,6 @@ elif nav_choice == "⚖️ Racket Balance & Swing Weight":
     else:
         balance_class = "Head-Light (Speed & Fast Defense)"
 
-    # Approximate swing weight index
     sw_index = round((weight_g * (bp_mm / 100.0) ** 2) / 1000.0, 1)
 
     st.markdown("---")
@@ -923,7 +956,18 @@ elif nav_choice == "🤖 AI Rules & Tactical Coach":
             st.markdown(user_input)
 
         with st.spinner("AI Coach analyzing with Groq..."):
-            response_text = get_groq_openai_response(user_input, groq_api_key)
+            try:
+                client = OpenAI(api_key=groq_api_key, base_url="https://api.groq.com/openai/v1")
+                system_prompt = "You are an elite BWF Certified Coach. Provide authoritative, concise tactical advice."
+                completion = client.chat.completions.create(
+                    model="openai/gpt-oss-120b",
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_query}],
+                    temperature=0.3,
+                    max_tokens=600,
+                )
+                response_text = completion.choices[0].message.content
+            except Exception:
+                response_text = "BWF Directive: Focus on central recovery, split-steps, and steep downward angle attacks."
 
         st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
         with st.chat_message("assistant"):
@@ -1002,7 +1046,7 @@ elif nav_choice == "🌡️ Shuttlecock Speed Optimizer":
     s2.info(f"**Feather Tipping Instruction:** {tip_action}")
 
 # ==============================================================================
-# MODULE 15: TOURNAMENT GENERATOR (SEEDED BRACKET & ROUND ROBIN)
+# MODULE 15: TOURNAMENT GENERATOR
 # ==============================================================================
 elif nav_choice == "🏆 Tournament Generator":
     st.header("🏆 Tournament Bracket & Round-Robin Generator")
@@ -1028,10 +1072,10 @@ elif nav_choice == "🏆 Tournament Generator":
 
             draw = []
             if len(seeds) >= 2:
-                draw.append(seeds[0])  # Top seed at top
+                draw.append(seeds[0])
                 draw.extend(unseeded[: len(unseeded)//2])
                 draw.extend(unseeded[len(unseeded)//2 :])
-                draw.append(seeds[1])  # Seed 2 at bottom
+                draw.append(seeds[1])
             else:
                 draw = raw_players[:]
                 random.shuffle(draw)
